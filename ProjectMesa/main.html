@@ -1,0 +1,182 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <style>
+#hud {
+    line-height:30px;
+    background-color:#eeeeee;
+    height:300px;
+    width:100px;
+    float:left;
+    padding:5px; 
+}
+</style>
+  <body style="width:1920; height:1080">
+    <canvas style="float:left;" id="myCanvas" width="1620" height="1060"></canvas>
+    <div id="hud" width="150" height="300"></div>
+   
+    <script>
+		
+		var players = 6;
+		var lanes = 8;
+		var monsters=1;
+		var turn=0;
+		var player=[];
+		var charHeight=56;
+		var charWidth=28;
+		var movSteps=2;
+		var laneLvl =[];
+		var monsterInfo=[];
+		var monster=[];
+		var laneSize=12;
+		var summonTurns=3;
+		var moveTurns=2;
+
+		var phases = {
+			intro:"intro",
+			summon:"summon",
+			monsterAdvance:"minionAdvance",
+			playerEnergy:"playerEnergy",
+			playerActions:"playerActions", 
+			battle:"battle"
+		}
+		
+		phase =  phases.intro;
+		
+		for (var i=0;i<players;i++)
+		{
+			player[i] = {lane:1, box:0, x:766, y:366, tmpx:766, tmpy:366, vit:20, hp:20, atk:4, def:4, enr:4, gold:0};
+		}
+		
+		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
+		
+		for (var i=0;i<lanes;i++)
+		{
+			laneLvl[i] = 0;
+			monster[i]=[];
+			
+			for (var j=0;j<monsters;j++)
+			{
+				monster[i][j] ={hp:monsterInfo[j].vit, alive:0, box:laneSize, tmpx:0, tmpy:0, x:0, y:0};
+			}
+		}
+		
+		
+		
+		player[0].x = 100;
+		console.log("Vit player 1:"+player[0].x);
+		board = [];
+		board["1.0"] = {x:766, y:366} ;
+		board["1.1"] = {x:794, y:345} ;
+		board["1.2"] = {x:794, y:297} ;
+		board["1.3"] = {x:729, y:264} ;
+		board["1.4"] = {x:663, y:250} ;
+		board["1.5"] = {x:633, y:204} ;
+		board["1.6"] = {x:583, y:187} ;
+		board["1.7"] = {x:520, y:155} ;
+		board["1.8"] = {x:453, y:137} ;
+		board["1.9"] = {x:389, y:136} ;
+		board["1.10"] = {x:324, y:123} ;
+		board["1.11"] = {x:257, y:92} ;
+		board["1.12"] = {x:211, y:59} ;
+	
+		
+		pos = "1.1";
+		
+		console.log("Pos 1.1:" +board[pos].x);
+		var canvas = document.getElementById('myCanvas');
+			var context = canvas.getContext('2d');
+			var boardImg = new Image();
+			var charImg = new Image();
+			var images = {};
+			
+			context.imageSmoothingEnabled = true;
+			
+		function loadImages(sources, callback) {
+        
+        var loadedImages = 0;
+        var numImages = 0;
+        // get num of sources
+        for(var src in sources) {
+          numImages++;
+        }
+        for(var src in sources) {
+          images[src] = new Image();
+          images[src].onload = function() {
+            if(++loadedImages >= numImages) {
+              callback(images);
+            }
+          };
+          images[src].src = sources[src];
+        }
+      }
+    
+
+      var sources = {
+        boardImg: "board.png",
+        charImg: "chars/char1.png"
+      };
+
+      loadImages(sources, function(images) {
+        setInterval(function(){render()}, 30);
+      });
+	  
+	  
+	 
+		function render()
+		{
+			
+			
+			//console.log("Rendering");
+			
+			context.drawImage(images.boardImg, 0, 0, 1620, 1060);
+			
+			var boardpos=""+player[0].lane+"."+player[0].box;
+			
+			//console.log(boardpos);
+			player[0].x=board[boardpos].x;
+			player[0].y=board[boardpos].y;
+			if (player[0].tmpx-player[0].x<movSteps){
+				player[0].tmpx+=movSteps;;
+				
+			}
+			if (player[0].tmpx-player[0].x>movSteps){
+				player[0].tmpx-=movSteps;
+				
+			}
+			
+			if (player[0].tmpy-player[0].y<movSteps){
+				player[0].tmpy+=movSteps;
+				
+			}
+			if (player[0].tmpy-player[0].y>movSteps){
+				player[0].tmpy-=movSteps;
+				
+			}
+			
+			context.drawImage(images.charImg, player[0].tmpx-(charWidth/2), player[0].tmpy-(charHeight/2), charWidth, charHeight);
+			
+			
+		};
+		
+      
+	  
+	  
+	   var row=1;
+	   var n=1;
+		canvas.addEventListener('mousedown', function(evt) {
+			console.log("board[\""+row+"."+n+"\"] = {x:" + evt.clientX + ", y:"+evt.clientY+"}");
+			player[0].box++;
+			n++;
+      }, false);
+      
+    </script>
+  </body>
+</html>     
