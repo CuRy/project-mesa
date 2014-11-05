@@ -31,13 +31,14 @@
 		var player=[];
 		var charHeight=56;
 		var charWidth=28;
-		var movSteps=2;
+		var movSteps=2; //For movement animation
+		var sizeSteps=2;	//For scale animation
 		var laneLvl =[];
 		var monsterInfo=[];
 		var monster=[];
 		var laneSize=12;
 		var summonTurns=3;
-		var moveTurns=2;
+		var monsterMoveTurns=2;
 
 		var phases = {
 			intro:"intro",
@@ -45,34 +46,22 @@
 			monsterAdvance:"minionAdvance",
 			playerEnergy:"playerEnergy",
 			playerActions:"playerActions", 
-			battle:"battle"
+			battle:"battle",
+			playerAtk:"playerAtk",
+			enemyAtk:"enemyAtk"
 		}
-		
-		phase =  phases.intro;
-		
-		for (var i=0;i<players;i++)
-		{
-			player[i] = {lane:1, box:0, x:766, y:366, tmpx:766, tmpy:366, vit:20, hp:20, atk:4, def:4, enr:4, gold:0};
-		}
-		
-		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
-		
-		for (var i=0;i<lanes;i++)
-		{
-			laneLvl[i] = 0;
-			monster[i]=[];
-			
-			for (var j=0;j<monsters;j++)
-			{
-				monster[i][j] ={hp:monsterInfo[j].vit, alive:0, box:laneSize, tmpx:0, tmpy:0, x:0, y:0};
-			}
-		}
-		
-		
-		
-		player[0].x = 100;
-		console.log("Vit player 1:"+player[0].x);
+
 		board = [];
+		board["1.13"] = {x:89, y:63};
+		board["2.13"] = {x:1177, y:43};
+		board["3.13"] = {x:1556, y:203};
+		board["4.13"] = {x:1557, y:870};
+		board["5.13"] = {x:1198, y:1028};
+		board["6.13"] = {x:327, y:1019};
+		board["7.13"] = {x:49, y:818};
+		board["8.13"] = {x:57, y:292};
+
+
 		board["1.0"] = {x:766, y:366} ;
 		board["1.1"] = {x:794, y:345} ;
 		board["1.2"] = {x:794, y:297} ;
@@ -86,6 +75,54 @@
 		board["1.10"] = {x:324, y:123} ;
 		board["1.11"] = {x:257, y:92} ;
 		board["1.12"] = {x:211, y:59} ;
+
+		board["2.0"] = {x:894, y:375};
+		board["2.1"] = {x:892, y:326};
+		board["2.2"] = {x:892, y:280};
+		board["2.3"] = {x:943, y:255};
+		board["2.4"] = {x:1007, y:256};
+		board["2.5"] = {x:1069, y:254};
+		board["2.6"] = {x:1134, y:238};
+		board["2.7"] = {x:1201, y:239};
+		board["2.8"] = {x:1231, y:193};
+		board["2.9"] = {x:1216, y:147};
+		board["2.10"] = {x:1166, y:129};
+		board["2.11"] = {x:1117, y:114};
+		board["2.12"] = {x:1067, y:98} ;
+		
+		phase =  phases.intro;
+		
+		for (var i=0;i<players;i++)
+		{
+			player[i] = {lane:1, box:0, x:766, y:366, tmpx:766, tmpy:366, vit:20, hp:20, atk:4, def:4, enr:4, gold:0};
+		}
+		
+		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
+		monsterInfo[25]={lvl:25, vit:50, atk:12, def:3,w:135,h:101};
+		
+
+
+		for (var i=0;i<lanes;i++)
+		{
+			laneLvl[i] = 0;
+			monster[i]=[];
+			
+			for (var j=0;j<monsters;j++)
+			{
+				monster[i][j] ={hp:monsterInfo[j].vit, alive:0, box:laneSize, tmpx:0, tmpy:0, x:0, y:0, tmpw:0, tmph:0, toAdvance:monsterMoveTurns};
+			}
+
+			var boardpos=""+(i+1)+".13";
+			monster[i][25]= {hp:monsterInfo[25].vit, alive:1, box:laneSize, tmpx:board[boardpos].x, tmpy:board[boardpos].y, x:board[boardpos].x, y:board[boardpos].y, tmpw:0, tmph:0};
+		}
+		
+		
+		
+		player[0].x = 100;
+		console.log("Vit player 1:"+player[0].x);
+		
+
+		
 	
 		
 		pos = "1.1";
@@ -121,11 +158,13 @@
 
       var sources = {
         boardImg: "board.png",
-        charImg: "chars/char1.png"
+        charImg: "chars/char1.png",
+        monster1Img: "monster/monster1.png",
+        monster25Img: "monster/monster25.png"
       };
 
       loadImages(sources, function(images) {
-        setInterval(function(){render()}, 30);
+      	setInterval(function(){render()}, 30);
       });
 	  
 	  
@@ -137,7 +176,14 @@
 			//console.log("Rendering");
 			
 			context.drawImage(images.boardImg, 0, 0, 1620, 1060);
+			drawPlayers();
+			drawMonsters();
 			
+			
+		};
+
+		function drawPlayers()
+		{
 			var boardpos=""+player[0].lane+"."+player[0].box;
 			
 			//console.log(boardpos);
@@ -162,17 +208,79 @@
 			}
 			
 			context.drawImage(images.charImg, player[0].tmpx-(charWidth/2), player[0].tmpy-(charHeight/2), charWidth, charHeight);
-			
-			
-		};
+
+		}
 		
-      
+      	function drawMonsters()
+      	{
+      		for (var i=0;i<lanes;i++)
+			{
+			
+				for (var j=0;j<monsters;j++)
+				{
+					if (monster[i][j].alive==1)
+					{
+						var boardpos=""+i+"."+monster[i][j].box;
+						console.log("i"+i+" j"+j+"  "+boardpos);
+						
+						monster[i][j].x=board[boardpos].x;
+						monster[i][j].y=board[boardpos].y;
+						//console.log("x:" +monster[i][j].x +" tmpx:"+monster[i][j].tmpx);
+						(monster[i][j].tmpw - monsterInfo[j].w<sizeSteps) ? monster[i][j].tmpw+=sizeSteps : 0;
+						(monster[i][j].tmph - monsterInfo[j].h<sizeSteps) ? monster[i][j].tmph+=sizeSteps : 0;
+						(monster[i][j].tmpw - monsterInfo[j].w>sizeSteps) ? monster[i][j].tmpw-=sizeSteps : 0;
+						(monster[i][j].tmph - monsterInfo[j].h>sizeSteps) ? monster[i][j].tmph-=sizeSteps : 0;
+
+						(monster[i][j].tmpx - monster[i][j].x<movSteps) ? monster[i][j].tmpx+=movSteps : 0;
+						(monster[i][j].tmpy - monster[i][j].y<movSteps) ? monster[i][j].tmpy+=movSteps : 0;
+						(monster[i][j].tmpx - monster[i][j].x>movSteps) ? monster[i][j].tmpx-=movSteps : 0;
+						(monster[i][j].tmpy - monster[i][j].y>movSteps) ? monster[i][j].tmpy-=movSteps : 0;
+						context.drawImage(images.monster1Img, monster[i][j].tmpx-(monsterInfo[j].w/2), monster[i][j].tmpy-(monsterInfo[j].h/2), monster[i][j].tmpw, monster[i][j].tmph);
+					}
+					
+				}
+				if (monster[i][25].alive==1)
+				{//console.log("x:" +monster[i][25].x +" tmpx:"+monster[i][25].tmpx);
+						var boardpos=""+(i+1)+".13";
+						//console.log(boardpos);
+						monster[i][25].x=board[boardpos].x;
+						monster[i][25].y=board[boardpos].y;
+						
+						(monster[i][25].tmpw - monsterInfo[25].w<sizeSteps) ? monster[i][25].tmpw+=sizeSteps : 0;
+						(monster[i][25].tmph - monsterInfo[25].h<sizeSteps) ? monster[i][25].tmph+=sizeSteps : 0;
+						(monster[i][25].tmpw - monsterInfo[25].w>sizeSteps) ? monster[i][25].tmpw-=sizeSteps : 0;
+						(monster[i][25].tmph - monsterInfo[25].h>sizeSteps) ? monster[i][25].tmph-=sizeSteps : 0;
+
+						(monster[i][25].tmpx - monster[i][25].x<movSteps) ? monster[i][25].tmpx+=movSteps : 0;
+						(monster[i][25].tmpy - monster[i][25].y<movSteps) ? monster[i][25].tmpy+=movSteps : 0;
+						(monster[i][25].tmpx - monster[i][25].x>movSteps) ? monster[i][25].tmpx-=movSteps : 0;
+						(monster[i][25].tmpy - monster[i][25].y>movSteps) ? monster[i][25].tmpy-=movSteps : 0;
+
+					context.drawImage(images.monster25Img, monster[i][25].tmpx-(monster[i][25].tmpw/2), monster[i][25].tmpy-(monster[i][25].tmph/2), monster[i][25].tmpw, monster[i][25].tmph);
+				}
+		}
+      	}
 	  
+	  function spawnMonster(lane, lvl)
+	  {
+	  	monster[lane][lvl].alive=1;
+	  	monster[lane][lvl].tmpx =  board[""+lane+".13"].x;
+	  	monster[lane][lvl].tmpy =  board[""+lane+".13"].y;
+	  }
 	  
-	   var row=1;
-	   var n=1;
+	   var row=2;
+	   var n=0;
+	   spawnMonster(1, 0);
+	   spawnMonster(2, 0);
+	   //spawnMonster(3, 0);
+	   //spawnMonster(4, 0);
+	   //spawnMonster(5, 0);
+	   //spawnMonster(6, 0);
+	   //spawnMonster(7, 0);
+	  // spawnMonster(8, 0);
 		canvas.addEventListener('mousedown', function(evt) {
-			console.log("board[\""+row+"."+n+"\"] = {x:" + evt.clientX + ", y:"+evt.clientY+"}");
+			var rect = canvas.getBoundingClientRect();
+			console.log("board[\""+row+"."+n+"\"] = {x:" + (evt.clientX - rect.left)+ ", y:"+(evt.clientY-rect.top)+"}");
 			player[0].box++;
 			n++;
       }, false);
