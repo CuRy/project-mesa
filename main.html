@@ -21,14 +21,14 @@
   <body style="width:1920; height:1080">
     <canvas style="float:left;" id="myCanvas" width="1620" height="1060"></canvas>
     <div id="hud" width="150" height="300">
-    	<input type="number" name="param1" min="1" max="12">
-    	<input name="param2" >
-    	<button type="button">Action!</button>
+    	<input type="number" name="param1"  id="param1" min="1" max="12">
+    	<input name="param2"  id="param1"  >
+    	<button type="button" onclick="inp()">Action!</button>
     	
 
     </div>
 
-   
+   <script src="jquery211.js"></script>
     <script>
 		
 		var players = 2;
@@ -47,6 +47,8 @@
 		var summonTurns=3;
 		var monsterMoveTurns=2;
 
+		var input=false;
+
 		var phases = {
 			intro:"intro",
 			summon:"summon",
@@ -57,6 +59,8 @@
 			playerAtk:"playerAtk",
 			enemyAtk:"enemyAtk"
 		}
+
+		var phase = phases.intro;
 
 		board = [];
 		board["0.13"] = {x:89, y:63};
@@ -181,7 +185,7 @@
 		board["7.11"] = {x:225, y:206};
 		board["7.12"] = {x:163, y:222};
 
-		phase =  phases.intro;
+		
 		
 		for (var i=0;i<players;i++)
 		{
@@ -234,7 +238,42 @@
 
       loadImages(sources);
 	  setInterval(function(){render()}, 30);
+	  setInterval(function(){processAction()}, 500);
 	  
+	  function inp(){
+	  	input=true; 
+	  	console.log("user input");
+	  }
+	  function processAction()
+	  {
+	  	if (phase==phases.intro)
+	  		phase = phases.summon;
+
+	  	if (phase==phases.summon && input==true)
+	  	{
+	  		var lane = $("#param1").val();
+	  		console.log("spawnMonster on lane "+ lane);
+	  		spawnMonster(lane-1, laneLvl[lane-1]);
+	  		laneLvl[lane-1]++;
+	  		phase=phases.monsterAdvance;
+	  	}
+
+	  	if (phase==phases.monsterAdvance)
+	  	{
+	  		for (var i=0;i<lanes;i++)
+			{
+			
+				for (var j=0;j<monsters;j++)
+				{
+					if (monster[i][j].alive==1)
+					{}
+				}
+			}
+
+	  	}
+
+
+	  }
 	 
 		function render()
 		{
@@ -342,13 +381,11 @@
 	   var row=7;
 	   var n=0;
 		canvas.addEventListener('mousedown', function(evt) {
-			var rect = canvas.getBoundingClientRect();
-			console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
-			player[0].box++;
-			player[1].box++;
-			n++;
+		var rect = canvas.getBoundingClientRect();
+		console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
+		n++;
 
-			for (var i=0;i<lanes;i++)
+		for (var i=0;i<lanes;i++)
 		{
 			monster[i][0].box--;
 			
