@@ -20,11 +20,18 @@
 </style>
   <body style="width:1920; height:1080">
     <canvas style="float:left;" id="myCanvas" width="1620" height="1060"></canvas>
-    <div id="hud" width="150" height="300"></div>
+    <div id="hud" width="150" height="300">
+    	<input type="number" name="param1" min="1" max="12">
+    	<input name="param2" >
+    	<button type="button">Action!</button>
+    	
+
+    </div>
+
    
     <script>
 		
-		var players = 6;
+		var players = 2;
 		var lanes = 8;
 		var monsters=1;
 		var turn=0;
@@ -52,49 +59,133 @@
 		}
 
 		board = [];
-		board["1.13"] = {x:89, y:63};
-		board["2.13"] = {x:1177, y:43};
-		board["3.13"] = {x:1556, y:203};
-		board["4.13"] = {x:1557, y:870};
-		board["5.13"] = {x:1198, y:1028};
-		board["6.13"] = {x:327, y:1019};
-		board["7.13"] = {x:49, y:818};
-		board["8.13"] = {x:57, y:292};
+		board["0.13"] = {x:89, y:63};
+		board["1.13"] = {x:1177, y:43};
+		board["2.13"] = {x:1556, y:203};
+		board["3.13"] = {x:1557, y:870};
+		board["4.13"] = {x:1198, y:1028};
+		board["5.13"] = {x:327, y:1019};
+		board["6.13"] = {x:49, y:818};
+		board["7.13"] = {x:57, y:292};
 
 
-		board["1.0"] = {x:766, y:366} ;
-		board["1.1"] = {x:794, y:345} ;
-		board["1.2"] = {x:794, y:297} ;
-		board["1.3"] = {x:729, y:264} ;
-		board["1.4"] = {x:663, y:250} ;
-		board["1.5"] = {x:633, y:204} ;
-		board["1.6"] = {x:583, y:187} ;
-		board["1.7"] = {x:520, y:155} ;
-		board["1.8"] = {x:453, y:137} ;
-		board["1.9"] = {x:389, y:136} ;
-		board["1.10"] = {x:324, y:123} ;
-		board["1.11"] = {x:257, y:92} ;
-		board["1.12"] = {x:211, y:59} ;
+		board["0.0"] = {x:766, y:366} ;
+		board["0.1"] = {x:794, y:345} ;
+		board["0.2"] = {x:794, y:297} ;
+		board["0.3"] = {x:729, y:264} ;
+		board["0.4"] = {x:663, y:250} ;
+		board["0.5"] = {x:633, y:204} ;
+		board["0.6"] = {x:583, y:187} ;
+		board["0.7"] = {x:520, y:155} ;
+		board["0.8"] = {x:453, y:137} ;
+		board["0.9"] = {x:389, y:136} ;
+		board["0.10"] = {x:324, y:123} ;
+		board["0.11"] = {x:257, y:92} ;
+		board["0.12"] = {x:211, y:59} ;
 
-		board["2.0"] = {x:894, y:375};
-		board["2.1"] = {x:892, y:326};
-		board["2.2"] = {x:892, y:280};
-		board["2.3"] = {x:943, y:255};
-		board["2.4"] = {x:1007, y:256};
-		board["2.5"] = {x:1069, y:254};
-		board["2.6"] = {x:1134, y:238};
-		board["2.7"] = {x:1201, y:239};
-		board["2.8"] = {x:1231, y:193};
-		board["2.9"] = {x:1216, y:147};
-		board["2.10"] = {x:1166, y:129};
-		board["2.11"] = {x:1117, y:114};
-		board["2.12"] = {x:1067, y:98} ;
+		board["1.0"] = {x:894, y:375};
+		board["1.1"] = {x:892, y:326};
+		board["1.2"] = {x:892, y:280};
+		board["1.3"] = {x:943, y:255};
+		board["1.4"] = {x:1007, y:256};
+		board["1.5"] = {x:1069, y:254};
+		board["1.6"] = {x:1134, y:238};
+		board["1.7"] = {x:1201, y:239};
+		board["1.8"] = {x:1231, y:193};
+		board["1.9"] = {x:1216, y:147};
+		board["1.10"] = {x:1166, y:129};
+		board["1.11"] = {x:1117, y:114};
+		board["1.12"] = {x:1067, y:98} ;
+
+		board["2.0"] = {x:970, y:481};
+		board["2.1"] = {x:1023, y:478};
+		board["2.2"] = {x:1073, y:480};
+		board["2.3"] = {x:1122, y:480};
+		board["2.4"] = {x:1171, y:479};
+		board["2.5"] = {x:1203, y:432};
+		board["2.6"] = {x:1267, y:416};
+		board["2.7"] = {x:1335, y:416};
+		board["2.8"] = {x:1332, y:352};
+		board["2.9"] = {x:1351, y:290};
+		board["2.10"] = {x:1365, y:227};
+		board["2.11"] = {x:1414, y:196};
+		board["2.12"] = {x:1480, y:194};
+
+		board["3.0"] = {x:940, y:535};
+		board["3.1"] = {x:990, y:549};
+		board["3.2"] = {x:1041, y:581};
+		board["3.3"] = {x:1090, y:595};
+		board["3.4"] = {x:1155, y:627};
+		board["3.5"] = {x:1220, y:627};
+		board["3.6"] = {x:1283, y:627};
+		board["3.7"] = {x:1312, y:671};
+		board["3.8"] = {x:1347, y:715};
+		board["3.9"] = {x:1379, y:766};
+		board["3.10"] = {x:1380, y:827};
+		board["3.11"] = {x:1428, y:841};
+		board["3.12"] = {x:1478, y:856};
+
+		board["4.0"] = {x:866, y:573};
+		board["4.1"] = {x:877, y:626};
+		board["4.2"] = {x:893, y:674};
+		board["4.3"] = {x:892, y:720};
+		board["4.4"] = {x:926, y:751};
+		board["4.5"] = {x:973, y:783};
+		board["4.6"] = {x:1038, y:800};
+		board["4.7"] = {x:1092, y:800};
+		board["4.8"] = {x:1154, y:799};
+		board["4.9"] = {x:1220, y:814};
+		board["4.10"] = {x:1253, y:862};
+		board["4.11"] = {x:1268, y:924};
+		board["4.12"] = {x:1266, y:987};
+
+		board["5.0"] = {x:792, y:591} ;
+		board["5.1"] = {x:794, y:643} ;
+		board["5.2"] = {x:796, y:704} ;
+		board["5.3"] = {x:813, y:766} ;
+		board["5.4"] = {x:811, y:831} ;
+		board["5.5"] = {x:780, y:880} ;
+		board["5.6"] = {x:697, y:881} ;
+		board["5.7"] = {x:632, y:846} ;
+		board["5.8"] = {x:566, y:817} ;
+		board["5.9"] = {x:502, y:833} ;
+		board["5.10"] = {x:440, y:848} ;
+		board["5.11"] = {x:373, y:896} ;
+		board["5.12"] = {x:323, y:944} ;
 		
+		board["6.0"] = {x:686, y:501};
+		board["6.1"] = {x:651, y:502};
+		board["6.2"] = {x:584, y:502};
+		board["6.3"] = {x:536, y:534};
+		board["6.4"] = {x:536, y:598};
+		board["6.5"] = {x:471, y:626};
+		board["6.6"] = {x:405, y:628};
+		board["6.7"] = {x:357, y:614};
+		board["6.8"] = {x:291, y:629};
+		board["6.9"] = {x:244, y:663};
+		board["6.10"] = {x:192, y:689};
+		board["6.11"] = {x:177, y:756};
+		board["6.12"] = {x:127, y:786};
+
+		board["7.0"] = {x:678, y:445};
+		board["7.1"] = {x:617, y:440};
+		board["7.2"] = {x:567, y:424};
+		board["7.3"] = {x:488, y:424};
+		board["7.4"] = {x:423, y:442};
+		board["7.5"] = {x:357, y:441};
+		board["7.6"] = {x:357, y:380};
+		board["7.7"] = {x:373, y:331};
+		board["7.8"] = {x:390, y:285};
+		board["7.9"] = {x:374, y:223};
+		board["7.10"] = {x:307, y:222};
+		board["7.11"] = {x:225, y:206};
+		board["7.12"] = {x:163, y:222};
+
 		phase =  phases.intro;
 		
 		for (var i=0;i<players;i++)
 		{
-			player[i] = {lane:1, box:0, x:766, y:366, tmpx:766, tmpy:366, vit:20, hp:20, atk:4, def:4, enr:4, gold:0};
+			player[i] = {lane:i, box:0, x:766, y:366, tmpx:766, tmpy:366, vit:20, hp:20, atk:4, def:4, enr:4, gold:0};
 		}
 		
 		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
@@ -112,22 +203,10 @@
 				monster[i][j] ={hp:monsterInfo[j].vit, alive:0, box:laneSize, tmpx:0, tmpy:0, x:0, y:0, tmpw:0, tmph:0, toAdvance:monsterMoveTurns};
 			}
 
-			var boardpos=""+(i+1)+".13";
+			var boardpos=""+i+".13";
 			monster[i][25]= {hp:monsterInfo[25].vit, alive:1, box:laneSize, tmpx:board[boardpos].x, tmpy:board[boardpos].y, x:board[boardpos].x, y:board[boardpos].y, tmpw:0, tmph:0};
 		}
 		
-		
-		
-		player[0].x = 100;
-		console.log("Vit player 1:"+player[0].x);
-		
-
-		
-	
-		
-		pos = "1.1";
-		
-		console.log("Pos 1.1:" +board[pos].x);
 		var canvas = document.getElementById('myCanvas');
 			var context = canvas.getContext('2d');
 			var boardImg = new Image();
@@ -136,37 +215,25 @@
 			
 			context.imageSmoothingEnabled = true;
 			
-		function loadImages(sources, callback) {
-        
-        var loadedImages = 0;
-        var numImages = 0;
-        // get num of sources
-        for(var src in sources) {
-          numImages++;
-        }
+		function loadImages(sources) {
         for(var src in sources) {
           images[src] = new Image();
-          images[src].onload = function() {
-            if(++loadedImages >= numImages) {
-              callback(images);
-            }
-          };
           images[src].src = sources[src];
+          }
+          
         }
-      }
+      
     
 
       var sources = {
         boardImg: "board.png",
         charImg: "chars/char1.png",
-        monster1Img: "monster/monster1.png",
-        monster25Img: "monster/monster25.png"
+        monster25Img: "monster/monster25.png",
+        monster1Img: "monster/monster1.png"
       };
 
-      loadImages(sources, function(images) {
-      	setInterval(function(){render()}, 30);
-      });
-	  
+      loadImages(sources);
+	  setInterval(function(){render()}, 30);
 	  
 	 
 		function render()
@@ -184,30 +251,20 @@
 
 		function drawPlayers()
 		{
-			var boardpos=""+player[0].lane+"."+player[0].box;
+			
 			
 			//console.log(boardpos);
-			player[0].x=board[boardpos].x;
-			player[0].y=board[boardpos].y;
-			if (player[0].tmpx-player[0].x<movSteps){
-				player[0].tmpx+=movSteps;;
+			for (var i=0;i<players;i++)
+			{
+				player[i].x=boardX(player[i].lane, player[i].box);
+				player[i].y=boardY(player[i].lane, player[i].box);
+				(player[i].tmpx-player[i].x<movSteps)?player[i].tmpx+=movSteps:0;
+				(player[i].tmpx-player[i].x>movSteps)?player[i].tmpx-=movSteps:0;
+				(player[i].tmpy-player[i].y<movSteps)?player[i].tmpy+=movSteps:0;
+				(player[i].tmpy-player[i].y>movSteps)?player[i].tmpy-=movSteps:0;
 				
+				context.drawImage(images.charImg, player[i].tmpx-(charWidth/2), player[i].tmpy-(charHeight/2), charWidth, charHeight);
 			}
-			if (player[0].tmpx-player[0].x>movSteps){
-				player[0].tmpx-=movSteps;
-				
-			}
-			
-			if (player[0].tmpy-player[0].y<movSteps){
-				player[0].tmpy+=movSteps;
-				
-			}
-			if (player[0].tmpy-player[0].y>movSteps){
-				player[0].tmpy-=movSteps;
-				
-			}
-			
-			context.drawImage(images.charImg, player[0].tmpx-(charWidth/2), player[0].tmpy-(charHeight/2), charWidth, charHeight);
 
 		}
 		
@@ -221,7 +278,7 @@
 					if (monster[i][j].alive==1)
 					{
 						var boardpos=""+i+"."+monster[i][j].box;
-						console.log("i"+i+" j"+j+"  "+boardpos);
+						//console.log("i"+i+" j"+j+"  "+boardpos);
 						
 						monster[i][j].x=board[boardpos].x;
 						monster[i][j].y=board[boardpos].y;
@@ -241,7 +298,7 @@
 				}
 				if (monster[i][25].alive==1)
 				{//console.log("x:" +monster[i][25].x +" tmpx:"+monster[i][25].tmpx);
-						var boardpos=""+(i+1)+".13";
+						var boardpos=""+i+".13";
 						//console.log(boardpos);
 						monster[i][25].x=board[boardpos].x;
 						monster[i][25].y=board[boardpos].y;
@@ -260,6 +317,18 @@
 				}
 		}
       	}
+
+      	function boardX(lane, box)
+      	{
+			var boardpos=""+lane+"."+box;
+			return board[boardpos].x;
+      	}
+
+      	function boardY(lane, box)
+      	{
+			var boardpos=""+lane+"."+box;
+			return board[boardpos].y;
+      	}
 	  
 	  function spawnMonster(lane, lvl)
 	  {
@@ -268,21 +337,22 @@
 	  	monster[lane][lvl].tmpy =  board[""+lane+".13"].y;
 	  }
 	  
-	   var row=2;
+	  
+
+	   var row=7;
 	   var n=0;
-	   spawnMonster(1, 0);
-	   spawnMonster(2, 0);
-	   //spawnMonster(3, 0);
-	   //spawnMonster(4, 0);
-	   //spawnMonster(5, 0);
-	   //spawnMonster(6, 0);
-	   //spawnMonster(7, 0);
-	  // spawnMonster(8, 0);
 		canvas.addEventListener('mousedown', function(evt) {
 			var rect = canvas.getBoundingClientRect();
-			console.log("board[\""+row+"."+n+"\"] = {x:" + (evt.clientX - rect.left)+ ", y:"+(evt.clientY-rect.top)+"}");
+			console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
 			player[0].box++;
+			player[1].box++;
 			n++;
+
+			for (var i=0;i<lanes;i++)
+		{
+			monster[i][0].box--;
+			
+		}
       }, false);
       
     </script>
