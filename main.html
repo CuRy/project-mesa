@@ -21,8 +21,9 @@
   <body style="width:1920; height:1080">
     <canvas style="float:left;" id="myCanvas" width="1620" height="1060"></canvas>
     <div id="hud" width="150" height="300">
-    	<input type="number" name="param1"  id="param1" min="1" max="12">
-    	<input name="param2"  id="param1"  >
+    	p1<input type="number" name="param1"  id="param1" min="1" max="12">
+    	p2<input name="param2"  id="param2"  >
+    	code<input name="code"  id="code"  >
     	<button type="button" onclick="inp()">Action!</button>
     	
 
@@ -30,10 +31,16 @@
 
    <script src="jquery211.js"></script>
     <script>
+
+
+    	//================  INIT  ======================
 		
 		var players = 2;
+		var castleHP=50;
+		var tmpCastleHP=castleHP;
 		var lanes = 8;
-		var monsters=1;
+		var currentPlayer=0;
+		//var monsters=1;
 		var turn=0;
 		var player=[];
 		var charHeight=56;
@@ -43,9 +50,11 @@
 		var laneLvl =[];
 		var monsterInfo=[];
 		var monster=[];
+		var monsters=[];
 		var laneSize=12;
 		var summonTurns=3;
 		var monsterMoveTurns=2;
+		var energy=0;
 
 		var input=false;
 
@@ -60,9 +69,11 @@
 			enemyAtk:"enemyAtk"
 		}
 
-		var phase = phases.intro;
+		
 
 		board = [];
+
+		board["center"] = {x:827, y:450};
 		board["0.13"] = {x:89, y:63};
 		board["1.13"] = {x:1177, y:43};
 		board["2.13"] = {x:1556, y:203};
@@ -187,11 +198,6 @@
 
 		
 		
-		for (var i=0;i<players;i++)
-		{
-			player[i] = {lane:i, box:0, x:766, y:366, tmpx:766, tmpy:366, vit:20, hp:20, atk:4, def:4, enr:4, gold:0};
-		}
-		
 		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
 		monsterInfo[25]={lvl:25, vit:50, atk:12, def:3,w:135,h:101};
 		
@@ -200,15 +206,7 @@
 		for (var i=0;i<lanes;i++)
 		{
 			laneLvl[i] = 0;
-			monster[i]=[];
-			
-			for (var j=0;j<monsters;j++)
-			{
-				monster[i][j] ={hp:monsterInfo[j].vit, alive:0, box:laneSize, tmpx:0, tmpy:0, x:0, y:0, tmpw:0, tmph:0, toAdvance:monsterMoveTurns};
-			}
 
-			var boardpos=""+i+".13";
-			monster[i][25]= {hp:monsterInfo[25].vit, alive:1, box:laneSize, tmpx:board[boardpos].x, tmpy:board[boardpos].y, x:board[boardpos].x, y:board[boardpos].y, tmpw:0, tmph:0};
 		}
 		
 		var canvas = document.getElementById('myCanvas');
@@ -216,6 +214,7 @@
 			var boardImg = new Image();
 			var charImg = new Image();
 			var images = {};
+			var monsterImg = {};
 			
 			context.imageSmoothingEnabled = true;
 			
@@ -224,7 +223,12 @@
           images[src] = new Image();
           images[src].src = sources[src];
           }
-          
+
+          monsterImg[0]=new Image();
+          monsterImg[0].src = "monster/monster1.png";
+
+          monsterImg[25]=new Image();
+          monsterImg[25].src = "monster/monster25.png";
         }
       
     
@@ -238,42 +242,184 @@
 
       loadImages(sources);
 	  setInterval(function(){render()}, 30);
-	  setInterval(function(){processAction()}, 500);
+	  setInterval(function(){processActionSlow()}, 800);
+	  setInterval(function(){processActionMedium()}, 400);
+	  setInterval(function(){processActionFast()}, 200);
 	  
+
+	  //================  ACTION  ======================
+
+	  var phaseControl=0;
+	  var phaseComplete=[0, 0, 0, 0, 0];
+	  var phaseValue=[0, 0, 0, 0, 0];
+	
+	  var action = {
+	  	code:"",
+	  	param1:"",
+	  	param2:""
+	  };
+
+		switchPhase(phases.intro);
+
 	  function inp(){
 	  	input=true; 
 	  	console.log("user input");
 	  }
-	  function processAction()
-	  {
-	  	if (phase==phases.intro)
-	  		phase = phases.summon;
 
-	  	if (phase==phases.summon && input==true)
+	  function switchPhase(toPhase)
+	  {
+	  	if (toPhase==phases.intro)
 	  	{
-	  		var lane = $("#param1").val();
-	  		console.log("spawnMonster on lane "+ lane);
-	  		spawnMonster(lane-1, laneLvl[lane-1]);
-	  		laneLvl[lane-1]++;
+	  		phaseControl=0;
+	  		phaseComplete[0]=lanes;
+	  		phaseComplete[1]=players;
+	  		phaseValue[0]=0;
+	  		phaseValue[0]=0;
+
+	  		phase=phases.intro;
+	  	}
+
+	  	if (toPhase==phases.summon)
+	  	{
+	  		phase=phases.summon;
+	  	}
+
+		if (toPhase==phases.monsterAdvance)
+	  	{
+	  		phaseComplete[0]=0;
+		  	phaseValue[0]=0;
+
+	  		for (m in monsters)
+	  		{
+	  			
+	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
+	  			{
+	  				monsters[m].toAdvance--;
+	  				if (monsters[m].toAdvance==0)
+	  					phaseComplete[0]++;
+	  			}
+
+	  		}
+
 	  		phase=phases.monsterAdvance;
 	  	}
 
+	  	 if (toPhase==phases.playerEnergy)
+	  	{
+	  		phase=phases.playerEnergy;
+	  	}
+
+	  	if (toPhase==phases.playerActions)
+	  	{
+	  		input=false;
+	  		phase=phases.playerActions;
+	  		getPossibleActions();
+	  	}
+
+	  	console.log("Phase is: "+phase);
+	  }
+
+
+
+
+	  function processActionSlow()
+	  {
+	  	//================   PHASE INTRO ======================
+	  	if (phase==phases.intro)
+	  	{
+	  	
+	  		if (phaseControl==0)
+	  		{
+	  			if (phaseValue[0]<phaseComplete[0])
+	  			{
+	  				spawnMonster(phaseValue[0], 25, true);
+	  				phaseValue[0]++
+	  			}
+	  			else
+	  				phaseControl++;
+	  		}
+	  		if (phaseControl==1)
+	  		{
+	  			if (phaseValue[1]<phaseComplete[1])
+	  			{
+					player[phaseValue[1]] = {lane:phaseValue[1], box:0, x:board["center"].x, y:board["center"].y, tmpx:board["center"].x, tmpy:board["center"].y, vit:20, hp:20, atk:4, def:4, enr:4, tmpgold: 0, gold:0};
+					phaseValue[1]++;
+	  			}
+	  			else
+	  			phaseControl++
+	  		}
+	  		
+
+	  		if (phaseControl==2)
+	  			switchPhase(phases.monsterAdvance);
+	  	}
+
+		//================  PHASE SUMMON  ======================
+	  	if (phase==phases.summon)
+	  	{
+	  		//var lane = $("#param1").val();
+	  		//console.log("spawnMonster on lane "+ lane);
+	  		var spawnLane=Math.floor((Math.random() * lanes));
+	  		spawnMonster(spawnLane, laneLvl[spawnLane]);
+	  		laneLvl[spawnLane]++;
+	  		switchPhase(phases.playerEnergy);
+	  	}
+
+		//================  PHASE MONSTER ADVANCE ======================
 	  	if (phase==phases.monsterAdvance)
 	  	{
-	  		for (var i=0;i<lanes;i++)
-			{
-			
-				for (var j=0;j<monsters;j++)
-				{
-					if (monster[i][j].alive==1)
-					{}
-				}
-			}
+	  		for (m in monsters)
+	  		{
+	  			
+	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
+	  			{
+	  				if (monsters[m].toAdvance==0)
+	  				{
+	  					console.log("Monster lvl "+monsters[m].lvl+" in lane "+ monsters[m].lane + " advances");
+		  				if (monsters[m].box>0)
+		  					monsters[m].box--;
+		  				else
+		  					attackCastle(monsters[m].lvl);
+
+		  				monsters[m].toAdvance=monsterMoveTurns;
+		  				phaseValue[0]++;
+	  				}
+
+
+	  			}
+
+
+	  		}
+	  		if (phaseValue[0]==phaseComplete[0])
+	  		switchPhase(phases.summon);
 
 	  	}
 
+		//================  PHASE PLAYER ENERGY ======================
+		if (phase==phases.playerEnergy && input==true)
+		{
+			energy=$("#param1").val();
+			switchPhase(phases.playerActions);
+		}
+
+		//================  PHASE PLAYER ACTIONS ======================
+		if (phase==phases.playerActions && input==true)
+		{
+			aCode=$("#code").val();
+			aP1=$("#param1").val();
+			aP2=$("#param2").val();
+			executeAction(aCode, aP1, aP2);
+			input=false;
+		}
 
 	  }
+		function processActionMedium()
+	  {}
+	  function processActionFast()
+	  {}
+	  
+
+	  //================  RENDER  ======================
 	 
 		function render()
 		{
@@ -295,6 +441,8 @@
 			//console.log(boardpos);
 			for (var i=0;i<players;i++)
 			{
+				if (typeof player[i] !== 'undefined')
+				{
 				player[i].x=boardX(player[i].lane, player[i].box);
 				player[i].y=boardY(player[i].lane, player[i].box);
 				(player[i].tmpx-player[i].x<movSteps)?player[i].tmpx+=movSteps:0;
@@ -303,63 +451,50 @@
 				(player[i].tmpy-player[i].y>movSteps)?player[i].tmpy-=movSteps:0;
 				
 				context.drawImage(images.charImg, player[i].tmpx-(charWidth/2), player[i].tmpy-(charHeight/2), charWidth, charHeight);
+				}
 			}
 
 		}
 		
       	function drawMonsters()
       	{
-      		for (var i=0;i<lanes;i++)
-			{
+
 			
-				for (var j=0;j<monsters;j++)
+			for (var i=0;i<monsters.length;i++)
+			{
+				var mons = monsters[i];
+				//console.log("monster lane: "+mons.lane);
+				mons.x = boardX(mons.lane, mons.box);
+
+				mons.y = boardY(mons.lane, mons.box);
+
+				var lvl =mons.lvl;
+				if (mons.alive)
 				{
-					if (monster[i][j].alive==1)
-					{
-						var boardpos=""+i+"."+monster[i][j].box;
-						//console.log("i"+i+" j"+j+"  "+boardpos);
-						
-						monster[i][j].x=board[boardpos].x;
-						monster[i][j].y=board[boardpos].y;
-						//console.log("x:" +monster[i][j].x +" tmpx:"+monster[i][j].tmpx);
-						(monster[i][j].tmpw - monsterInfo[j].w<sizeSteps) ? monster[i][j].tmpw+=sizeSteps : 0;
-						(monster[i][j].tmph - monsterInfo[j].h<sizeSteps) ? monster[i][j].tmph+=sizeSteps : 0;
-						(monster[i][j].tmpw - monsterInfo[j].w>sizeSteps) ? monster[i][j].tmpw-=sizeSteps : 0;
-						(monster[i][j].tmph - monsterInfo[j].h>sizeSteps) ? monster[i][j].tmph-=sizeSteps : 0;
+				(mons.tmpw - monsterInfo[lvl].w<sizeSteps) ? mons.tmpw+=sizeSteps : 0;
+				(mons.tmph - monsterInfo[lvl].h<sizeSteps) ? mons.tmph+=sizeSteps : 0;
+				(mons.tmpw - monsterInfo[lvl].w>sizeSteps) ? mons.tmpw-=sizeSteps : 0;
+				(mons.tmph - monsterInfo[lvl].h>sizeSteps) ? mons.tmph-=sizeSteps : 0;
 
-						(monster[i][j].tmpx - monster[i][j].x<movSteps) ? monster[i][j].tmpx+=movSteps : 0;
-						(monster[i][j].tmpy - monster[i][j].y<movSteps) ? monster[i][j].tmpy+=movSteps : 0;
-						(monster[i][j].tmpx - monster[i][j].x>movSteps) ? monster[i][j].tmpx-=movSteps : 0;
-						(monster[i][j].tmpy - monster[i][j].y>movSteps) ? monster[i][j].tmpy-=movSteps : 0;
-						context.drawImage(images.monster1Img, monster[i][j].tmpx-(monsterInfo[j].w/2), monster[i][j].tmpy-(monsterInfo[j].h/2), monster[i][j].tmpw, monster[i][j].tmph);
-					}
-					
+				(mons.tmpx - mons.x<movSteps) ? mons.tmpx+=movSteps : 0;
+				(mons.tmpy - mons.y<movSteps) ? mons.tmpy+=movSteps : 0;
+				(mons.tmpx - mons.x>movSteps) ? mons.tmpx-=movSteps : 0;
+				(mons.tmpy - mons.y>movSteps) ? mons.tmpy-=movSteps : 0;
+
+
 				}
-				if (monster[i][25].alive==1)
-				{//console.log("x:" +monster[i][25].x +" tmpx:"+monster[i][25].tmpx);
-						var boardpos=""+i+".13";
-						//console.log(boardpos);
-						monster[i][25].x=board[boardpos].x;
-						monster[i][25].y=board[boardpos].y;
-						
-						(monster[i][25].tmpw - monsterInfo[25].w<sizeSteps) ? monster[i][25].tmpw+=sizeSteps : 0;
-						(monster[i][25].tmph - monsterInfo[25].h<sizeSteps) ? monster[i][25].tmph+=sizeSteps : 0;
-						(monster[i][25].tmpw - monsterInfo[25].w>sizeSteps) ? monster[i][25].tmpw-=sizeSteps : 0;
-						(monster[i][25].tmph - monsterInfo[25].h>sizeSteps) ? monster[i][25].tmph-=sizeSteps : 0;
 
-						(monster[i][25].tmpx - monster[i][25].x<movSteps) ? monster[i][25].tmpx+=movSteps : 0;
-						(monster[i][25].tmpy - monster[i][25].y<movSteps) ? monster[i][25].tmpy+=movSteps : 0;
-						(monster[i][25].tmpx - monster[i][25].x>movSteps) ? monster[i][25].tmpx-=movSteps : 0;
-						(monster[i][25].tmpy - monster[i][25].y>movSteps) ? monster[i][25].tmpy-=movSteps : 0;
-
-					context.drawImage(images.monster25Img, monster[i][25].tmpx-(monster[i][25].tmpw/2), monster[i][25].tmpy-(monster[i][25].tmph/2), monster[i][25].tmpw, monster[i][25].tmph);
-				}
-		}
+				context.drawImage(monsterImg[mons.lvl], mons.tmpx-(mons.tmpw/2), mons.tmpy-(mons.tmph/2), mons.tmpw, mons.tmph);
+			}
       	}
+
+
+      	//================  AUX FUNCTIONS  ======================
 
       	function boardX(lane, box)
       	{
 			var boardpos=""+lane+"."+box;
+			//console.log(boardpos);
 			return board[boardpos].x;
       	}
 
@@ -369,15 +504,101 @@
 			return board[boardpos].y;
       	}
 	  
-	  function spawnMonster(lane, lvl)
+	  function spawnMonster(lane, lvl, boss)
 	  {
-	  	monster[lane][lvl].alive=1;
+	  	/*monster[lane][lvl].alive=1;
 	  	monster[lane][lvl].tmpx =  board[""+lane+".13"].x;
 	  	monster[lane][lvl].tmpy =  board[""+lane+".13"].y;
+	  	*/
+	  	console.log("Spawning lvl "+lvl+" monster at lane "+lane);
+	  	var box = (boss==true)?13:laneSize;
+	  	monsters.push({lvl:lvl, hp:monsterInfo[lvl].vit, alive:true,lane:lane, box:box, tmpx:boardX(lane,box), tmpy:boardY(lane, box), x:boardX(lane, box), y:boardY(lane, box), tmpw:0, tmph:0, toAdvance:monsterMoveTurns});
 	  }
-	  
+
+	  function getAliveMonsters()
+	  {
+	  	var monsterList = [];
+
+	  	for (var i=0;i<lanes;i++)
+			{
+			
+				for (var j=0;j<monsters;j++)
+				{
+					if (monster[i][j].alive==1)
+					{
+						monsterList.push(monster[i][j]);
+					}
+				}
+			}
+
+		return monsterList;
+
+	  }
+
+	  function attackCastle(monsterLvl)
+	  {
+	  	var atk = monsterInfo[monsterLvl].atk;
+	  	var dmg = Math.floor((Math.random() * atk) + 1);
+	  	castleHP-=dmg;
+	  }
+
+	  function getPossibleActions()
+	  {
+	  	var actionList=[];
+	  	var currentBox = player[currentPlayer].box;
+	  	var currentLane = player[currentPlayer].lane;
+	  	//move
+	  	if (currentBox>0)
+	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox-1});
+
+	  	if (currentBox<laneSize)
+	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox+1});
+
+	  	if (currentBox==0)
+	  	{
+	  		for (var l=0;l<lanes;l++)
+	  			actionList.push({code:"mov", param1:l, param2:1});
+	  	}
+	  	
+	  	//atack
+
+	  	//buy
+	  	console.log("Possible actions:");
+	  	for (a in actionList)
+	  	{
+	  		console.log(actionList[a].code+ " P1: "+actionList[a].param1+" P2: "+actionList[a].param2);
+	  	}
+	  	return actionList;
+	  }
+		
+		function executeAction(code, p1, p2)
+		{
+			var validAction=false;
+			var actionList = getPossibleActions();
+			for (a in actionList)
+			{
+				if (actionList[a].code==code && actionList[a].param1==p1 && actionList[a].param2 == p2)
+					validAction=true;
+			}
+
+			if (validAction==false)
+			{
+				console.log("Not a valid action: "+code+ " P1: "+p1+" P2: "+p2);
+				return;
+			}
+			if (code=="mov")
+			{
+				player[currentPlayer].lane=p1;
+				player[currentPlayer].box=p2;
+
+				energy--;
+			}
+		}	  
 	  
 
+		//================  EVENTS  ======================
+
+		//spawnMonster(0, 0);
 	   var row=7;
 	   var n=0;
 		canvas.addEventListener('mousedown', function(evt) {
@@ -385,10 +606,10 @@
 		console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
 		n++;
 
-		for (var i=0;i<lanes;i++)
+		for (var thisMonster in getAliveMonsters())
 		{
-			monster[i][0].box--;
-			
+			console.log("Moving monster");
+			thisMonster.box--;
 		}
       }, false);
       
