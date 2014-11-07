@@ -313,7 +313,7 @@
 	  	{
 	  		input=false;
 	  		phase=phases.playerActions;
-	  		getPossibleActions();
+	  		
 	  	}
 
 	  	console.log("Phase is: "+phase);
@@ -409,6 +409,7 @@
 			aP1=$("#param1").val();
 			aP2=$("#param2").val();
 			executeAction(aCode, aP1, aP2);
+			getPossibleActions();
 			input=false;
 		}
 
@@ -473,8 +474,6 @@
 				{
 				(mons.tmpw - monsterInfo[lvl].w<sizeSteps) ? mons.tmpw+=sizeSteps : 0;
 				(mons.tmph - monsterInfo[lvl].h<sizeSteps) ? mons.tmph+=sizeSteps : 0;
-				(mons.tmpw - monsterInfo[lvl].w>sizeSteps) ? mons.tmpw-=sizeSteps : 0;
-				(mons.tmph - monsterInfo[lvl].h>sizeSteps) ? mons.tmph-=sizeSteps : 0;
 
 				(mons.tmpx - mons.x<movSteps) ? mons.tmpx+=movSteps : 0;
 				(mons.tmpy - mons.y<movSteps) ? mons.tmpy+=movSteps : 0;
@@ -483,7 +482,11 @@
 
 
 				}
-
+				if (!mons.alive)
+				{
+					(mons.tmpw >0) ? mons.tmpw-=sizeSteps : 0;
+					(mons.tmph >0) ? mons.tmph-=sizeSteps : 0;
+				}
 				context.drawImage(monsterImg[mons.lvl], mons.tmpx-(mons.tmpw/2), mons.tmpy-(mons.tmph/2), mons.tmpw, mons.tmph);
 			}
       	}
@@ -512,28 +515,10 @@
 	  	*/
 	  	console.log("Spawning lvl "+lvl+" monster at lane "+lane);
 	  	var box = (boss==true)?13:laneSize;
-	  	monsters.push({lvl:lvl, hp:monsterInfo[lvl].vit, alive:true,lane:lane, box:box, tmpx:boardX(lane,box), tmpy:boardY(lane, box), x:boardX(lane, box), y:boardY(lane, box), tmpw:0, tmph:0, toAdvance:monsterMoveTurns});
+
+	  	monsters.push({lvl:lvl, hp:monsterInfo[lvl].vit, alive:true,lane:lane, box:box, def:monsterInfo[lvl].def, tmpx:boardX(lane,13), tmpy:boardY(lane, 13), x:boardX(lane, box), y:boardY(lane, box), tmpw:0, tmph:0, toAdvance:monsterMoveTurns});
 	  }
 
-	  function getAliveMonsters()
-	  {
-	  	var monsterList = [];
-
-	  	for (var i=0;i<lanes;i++)
-			{
-			
-				for (var j=0;j<monsters;j++)
-				{
-					if (monster[i][j].alive==1)
-					{
-						monsterList.push(monster[i][j]);
-					}
-				}
-			}
-
-		return monsterList;
-
-	  }
 
 	  function attackCastle(monsterLvl)
 	  {
@@ -552,7 +537,7 @@
 	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox-1});
 
 	  	if (currentBox<laneSize)
-	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox+1});
+	  		actionList.push({code:"mov", param1:currentLane, param2:(currentBox-0+1)});
 
 	  	if (currentBox==0)
 	  	{
@@ -561,8 +546,25 @@
 	  	}
 	  	
 	  	//atack
+	  	for (m in monsters)
+	  	{
+	  		if (monsters[m].alive==true)
+	  		{
+	  			if (monsters[m].lane==currentLane && (Math.abs(monsters[m].box-currentBox) <=1)  )
+	  			{
+	  				actionList.push({code:"atk", param1:m, param2:0});
+	  			}
+	  			if ((monsters[m].box==0 || monsters[m].box==1) && currentBox==0) 
+	  			{
+	  				actionList.push({code:"atk", param1:m, param2:0});	
+	  			}
+	  		}
+	  	}
 
 	  	//buy
+
+
+
 	  	console.log("Possible actions:");
 	  	for (a in actionList)
 	  	{
@@ -577,7 +579,10 @@
 			var actionList = getPossibleActions();
 			for (a in actionList)
 			{
-				if (actionList[a].code==code && actionList[a].param1==p1 && actionList[a].param2 == p2)
+				if (actionList[a].code=="mov" && actionList[a].param1==p1 && actionList[a].param2 == p2)
+					validAction=true;
+
+				if (actionList[a].code=="atk" && actionList[a].param1==p1)
 					validAction=true;
 			}
 
@@ -586,12 +591,31 @@
 				console.log("Not a valid action: "+code+ " P1: "+p1+" P2: "+p2);
 				return;
 			}
+
 			if (code=="mov")
 			{
 				player[currentPlayer].lane=p1;
 				player[currentPlayer].box=p2;
 
 				energy--;
+			}
+
+			if (code=="atk")
+			{
+				
+				monsters[p1].hp-=(p2-monsters[p1].def);
+				if (monsters[p1].hp<=0)
+				{
+					monsters[p1].alive=false;
+					player[currentPlayer].gold+= 5 + (monsters[p1].lvl *2);
+				}
+				console.log("Attacking monster "+p1 +" Hp remaining: "+monsters[p1].hp+"  Alive: "+monsters[p1].alive);
+			}
+
+			if (code=="dmg")
+			{
+				player[currentPlayer].hp-=(p2-player[currentPlayer].def);
+
 			}
 		}	  
 	  
@@ -606,10 +630,10 @@
 		console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
 		n++;
 
-		for (var thisMonster in getAliveMonsters())
+		for (m in monsters)
 		{
-			console.log("Moving monster");
-			thisMonster.box--;
+			console.log("Moving monster, hp"+monsters[m].hp);
+			if (monsters[m].box!=13)monsters[m].box--;
 		}
       }, false);
       
