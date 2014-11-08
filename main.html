@@ -64,8 +64,9 @@
 		var boardH=1060;
 		var infoBoxW=150;
 		var infoBoxH=150;
-		var battleBackgroundW=800;
-		var battleBackgroundH=400;
+		var battleback = {w:640, h:320, tmpw:0, tmph:0};
+		var battlePlayer={w:0, h:0, tmph:0,tmpw:0, x:659, y:560};
+		var battleMonster={id:0, w:0, h:0, tmph:0,tmpw:0,x:967, y:560};
 
 
 		var phases = {
@@ -223,6 +224,7 @@
 			var context = canvas.getContext('2d');
 			var boardImg = new Image();
 			var charImg = new Image();
+			var battlebackImg = new Image();
 			var images = {};
 			var monsterImg = {};
 			
@@ -239,6 +241,8 @@
 
           monsterImg[25]=new Image();
           monsterImg[25].src = "monster/monster25.png";
+
+          battlebackImg.src = "battleback.jpg";
         }
       
     
@@ -323,6 +327,27 @@
 	  	{
 	  		input=false;
 	  		phase=phases.playerActions;
+	  		
+	  	}
+
+	  	if (toPhase==phases.battle)
+	  	{
+	  		input=false;
+	  		
+	  		battlePlayer.w=charWidth*2;
+	  		battlePlayer.h=charHeight*2;
+	  		
+	  		battleMonster.w=monsterInfo[monsters[battleMonster.id].lvl].w*2;
+	  		battleMonster.h=monsterInfo[monsters[battleMonster.id].lvl].h*2;
+
+	  		//console.log("monster lvl "+battleMonster.w);
+
+	  		battlePlayer.tmpw=0;
+	  		battlePlayer.tmph=0;
+	  		battleMonster.tmpw=0;
+	  		battleMonster.tmph=0;
+
+	  		phase=phases.battle;
 	  		
 	  	}
 
@@ -493,7 +518,7 @@
 
 				}
 				if (!mons.alive)
-				{
+				{ 
 					(mons.tmpw >0) ? mons.tmpw-=sizeSteps : 0;
 					(mons.tmph >0) ? mons.tmph-=sizeSteps : 0;
 				}
@@ -505,6 +530,42 @@
       	{
       		context.fillStyle = "#333333";
       		context.fillRect(boardW, 0, infoBoxW, infoBoxH);
+      		wset=false;
+      		hset=false;
+      		if (phase==phases.battle)
+      		{
+      			(battleback.tmpw<battleback.w) ? battleback.tmpw+=sizeSteps * 10:wset=true;
+      			(battleback.tmph<battleback.h) ? battleback.tmph+=sizeSteps * 10:hset=true;
+
+      			if (wset && hset)
+      			{
+
+      				(battlePlayer.tmpw<battlePlayer.w) ? battlePlayer.tmpw+=sizeSteps:0;
+      				(battlePlayer.tmph<battlePlayer.h) ? battlePlayer.tmph+=sizeSteps:0;
+
+      				(battleMonster.tmpw<battleMonster.w) ? battleMonster.tmpw+=sizeSteps:0;
+      				(battleMonster.tmph<battleMonster.h) ? battleMonster.tmph+=sizeSteps:0;
+      				//console.log(battleMonster.tmpw+"  "+battleMonster.w);
+      				//console.log(battleMonster.tmph+"  "+battleMonster.h);
+      			}
+
+
+      			
+      		}
+      		if (phase!=phases.battle)
+      		{
+      			(battleback.tmpw>0) ? battleback.tmpw-=sizeSteps * 10:0;
+      			(battleback.tmph>0) ? battleback.tmph-=sizeSteps * 10:0;
+      		}
+
+      		context.drawImage(battlebackImg, (boardW/2)-(battleback.tmpw/2), (boardH/2)-(battleback.tmph/2), battleback.tmpw,battleback.tmph);
+      		if (wset && hset)
+      		{
+      			var mons = monsters[battleMonster.id];
+      			context.drawImage(images.charImg, battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
+      			context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
+      		}
+      		//context.drawImage(battlebackImg, 100, 100, 100,100);
       	}
 
 
@@ -548,6 +609,11 @@
 	  	var actionList=[];
 	  	var currentBox = player[currentPlayer].box;
 	  	var currentLane = player[currentPlayer].lane;
+
+	  	//battle
+	  	if (phase==phases.battle){
+	  		actionList.push({code:"battle", param1:battleMonster.id, param2:0});
+	  	}
 	  	//move
 	  	if (currentBox>0)
 	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox-1});
@@ -568,11 +634,11 @@
 	  		{
 	  			if (monsters[m].lane==currentLane && (Math.abs(monsters[m].box-currentBox) <=1)  )
 	  			{
-	  				actionList.push({code:"atk", param1:m, param2:0});
+	  				actionList.push({code:"battle", param1:m, param2:0});
 	  			}
 	  			if ((monsters[m].box==0 || monsters[m].box==1) && currentBox==0) 
 	  			{
-	  				actionList.push({code:"atk", param1:m, param2:0});	
+	  				actionList.push({code:"battle", param1:m, param2:0});	
 	  			}
 	  		}
 	  	}
@@ -600,6 +666,9 @@
 
 				if (actionList[a].code=="atk" && actionList[a].param1==p1)
 					validAction=true;
+
+				if (actionList[a].code=="battle" && actionList[a].param1==p1)
+					validAction=true;
 			}
 
 			if (validAction==false)
@@ -614,6 +683,12 @@
 				player[currentPlayer].box=p2;
 
 				energy--;
+			}
+
+			if (code=="battle")
+			{
+				battleMonster.id=p1;
+				switchPhase(phases.battle);
 			}
 
 			if (code=="atk")
