@@ -19,7 +19,7 @@
 }
 </style>
   <body style="width:1920; height:1080">
-    <canvas style="float:left;" id="myCanvas" width="1620" height="1060"></canvas>
+    <canvas style="float:left;" id="myCanvas" width="1920" height="1060"></canvas>
     <div id="hud" width="150" height="300">
     	p1<input type="number" name="param1"  id="param1" min="1" max="12">
     	p2<input name="param2"  id="param2"  >
@@ -57,6 +57,14 @@
 		var energy=0;
 
 		var input=false;
+
+
+		//HUD
+		var boardW=1620;
+		var boardH=1060;
+		var infoBoxW=150;
+		var infoBoxH=150;
+
 
 		var phases = {
 			intro:"intro",
@@ -432,7 +440,7 @@
 			drawPlayers();
 			drawMonsters();
 			
-			
+			drawHUD()
 		};
 
 		function drawPlayers()
@@ -489,6 +497,12 @@
 				}
 				context.drawImage(monsterImg[mons.lvl], mons.tmpx-(mons.tmpw/2), mons.tmpy-(mons.tmph/2), mons.tmpw, mons.tmph);
 			}
+      	}
+
+      	function drawHUD()
+      	{
+      		context.fillStyle = "#333333";
+      		context.fillRect(boardW, 0, infoBoxW, infoBoxH);
       	}
 
 
