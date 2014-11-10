@@ -55,6 +55,11 @@
 		var summonTurns=3;
 		var monsterMoveTurns=2;
 		var energy=0;
+		var defInfo=[];
+		var vitInfo=[];
+		var atkInfo=[];
+		var enrInfo=[];
+
 
 		var input=false;
 
@@ -62,14 +67,28 @@
 		//HUD
 		var boardW=1620;
 		var boardH=1060;
-		var infoBoxW=150;
-		var infoBoxH=150;
+		var infoBoxW=112;
+		var infoBoxH=168;
 		var battleback = {w:640, h:320, tmpw:0, tmph:0};
 		var battlePlayer={w:0, h:0, tmph:0,tmpw:0, x:659, y:560};
-		var battleMonster={id:0, w:0, h:0, tmph:0,tmpw:0,x:967, y:560};
+		var battleMonster={id:0, w:0, h:0, tmph:0,tmpw:0,x:920, y:560};
+		var atributeHoffset=50;
+		var atributeVoffset=70;
+		var monsterBattleIcon={h:48, w:48};
 
+		var animInfo = [];
+		var dmgText ={ttl:0,x:0,y:0, text:""};
+		var flashVal=30;
+		animInfo["sword"] = [];
+
+		animInfo["sword"][0]={x:-100, y:-100, w:0,h:0, sizeStep:48, movStep:16};
+		animInfo["sword"][1]={x:0, y:0, w:192,h:192, sizeStep:48, movStep:16};
+		animInfo["sword"][2]={x:100, y:100, w:0,h:0, sizeStep:48, movStep:16};
+
+		var currentAnimation={active:false, type:"", stage:0, x:0, y:0, tmpx:0, tmpy:0, w:0, h:0, tmpw:0,tmph:0, basex:0, basey:0};
 
 		var phases = {
+			playerChoose:"playerChoose",
 			intro:"intro",
 			summon:"summon",
 			monsterAdvance:"minionAdvance",
@@ -212,6 +231,37 @@
 		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
 		monsterInfo[25]={lvl:25, vit:50, atk:12, def:3,w:135,h:101};
 		
+		var atkMax=5;
+		var vitMax=6;
+		var defMax=5;
+		var enrMax=5;
+
+
+		atkInfo[0]={cost:0, val:4, w:56, h:84};
+		atkInfo[1]={cost:40, val:6, w:56, h:84};
+		atkInfo[2]={cost:60, val:8, w:56, h:84};
+		atkInfo[3]={cost:100, val:10, w:56, h:84};
+		atkInfo[4]={cost:160, val:12, w:56, h:84};
+
+		vitInfo[0]={cost:0, val:20, w:56, h:56};
+		vitInfo[1]={cost:20, val:24, w:56, h:56};
+		vitInfo[2]={cost:30, val:28, w:56, h:56};
+		vitInfo[3]={cost:50, val:32, w:56, h:56};
+		vitInfo[4]={cost:80, val:36, w:56, h:56};
+		vitInfo[5]={cost:120, val:40, w:56, h:56};
+
+		defInfo[0]={cost:0, val:0, w:56, h:84};
+		defInfo[1]={cost:30, val:1, w:56, h:84};
+		defInfo[2]={cost:50, val:2, w:56, h:84};
+		defInfo[3]={cost:90, val:3, w:56, h:84};
+		defInfo[4]={cost:150, val:4, w:56, h:84};
+		defInfo[5]={cost:230, val:5, w:56, h:84};
+
+		enrInfo[0]={cost:0, val:4, w:56, h:56};
+		enrInfo[1]={cost:0, val:6, w:56, h:56};
+		enrInfo[2]={cost:0, val:8, w:56, h:56};
+		enrInfo[3]={cost:0, val:10, w:56, h:56};
+		enrInfo[4]={cost:0, val:12, w:56, h:56};
 
 
 		for (var i=0;i<lanes;i++)
@@ -228,6 +278,11 @@
 			var images = {};
 			var monsterImg = {};
 			
+			var defImg = {};
+			var atkImg = {};
+			var vitImg = {};
+			var enrImg = {};
+			var animImg=[];
 			context.imageSmoothingEnabled = true;
 			
 		function loadImages(sources) {
@@ -243,6 +298,38 @@
           monsterImg[25].src = "monster/monster25.png";
 
           battlebackImg.src = "battleback.jpg";
+
+          monsterAtkImg = new Image();
+          monsterDefImg = new Image();
+          monsterHpImg = new Image();
+          monsterAtkImg.src = "items/atkIcon.png";
+          monsterDefImg.src = "items/defIcon.png";
+          monsterHpImg.src = "items/hpIcon.png";
+
+          for (var d in defInfo)
+          {
+          	defImg[d]=new Image();
+          	defImg[d].src= "items/armor"+d+".gif";
+          }
+          for (var d in atkInfo)
+          {
+          	atkImg[d]=new Image();
+          	atkImg[d].src= "items/sword"+d+".gif";
+          }
+          for (var d in vitInfo)
+          {
+          	vitImg[d]=new Image();
+          	vitImg[d].src= "items/helm"+d+".gif";
+          }
+          for (var d in enrInfo)
+          {
+          	enrImg[d]=new Image();
+          	enrImg[d].src= "items/boots"+d+".gif";
+          }
+
+      
+          animImg["sword"]=new Image();
+          animImg["sword"].src="anim/sword.png";
         }
       
     
@@ -256,9 +343,7 @@
 
       loadImages(sources);
 	  setInterval(function(){render()}, 30);
-	  setInterval(function(){processActionSlow()}, 800);
-	  setInterval(function(){processActionMedium()}, 400);
-	  setInterval(function(){processActionFast()}, 200);
+	  setInterval(function(){processAction()}, 100);
 	  
 
 	  //================  ACTION  ======================
@@ -266,6 +351,7 @@
 	  var phaseControl=0;
 	  var phaseComplete=[0, 0, 0, 0, 0];
 	  var phaseValue=[0, 0, 0, 0, 0];
+	  var waitLeft=0;
 	
 	  var action = {
 	  	code:"",
@@ -347,6 +433,7 @@
 	  		battleMonster.tmpw=0;
 	  		battleMonster.tmph=0;
 
+	  		flashVal=30;
 	  		phase=phases.battle;
 	  		
 	  	}
@@ -354,15 +441,34 @@
 	  	console.log("Phase is: "+phase);
 	  }
 
+	  function wait(time) {
+	  	waitLeft+=time;
+	  }
 
 
-
-	  function processActionSlow()
+	  function processAction()
 	  {
+	  	if (waitLeft>0){
+	  		waitLeft--;
+	  		return;
+	  	}
+
+	  	for (m in monsters)
+	  	{
+	  		var mon=monsters[m];
+	  		(mon.hp<mon.tmphp)?mon.tmphp--:0;
+	  	}
+
+	  	for (p=0;p<player.length;p++)
+	  	{
+	  		var pl=player[p];
+	  		(pl.hp<pl.tmphp)?pl.tmphp--:0;
+	  		(pl.hp>pl.tmphp)?pl.tmphp++:0;	  		
+	  	}
+	  	
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
 	  	{
-	  	
 	  		if (phaseControl==0)
 	  		{
 	  			if (phaseValue[0]<phaseComplete[0])
@@ -372,19 +478,37 @@
 	  			}
 	  			else
 	  				phaseControl++;
+
+	  			
 	  		}
 	  		if (phaseControl==1)
 	  		{
 	  			if (phaseValue[1]<phaseComplete[1])
 	  			{
-					player[phaseValue[1]] = {lane:phaseValue[1], box:0, x:board["center"].x, y:board["center"].y, tmpx:board["center"].x, tmpy:board["center"].y, vit:20, hp:20, atk:4, def:4, enr:4, tmpgold: 0, gold:0};
+					player[phaseValue[1]] = {
+						lane:phaseValue[1], 
+						box:0, 
+						x:board["center"].x, 
+						y:board["center"].y, 
+						tmpx:board["center"].x, 
+						tmpy:board["center"].y, 
+						vitLvl:0, 
+						hp:vitInfo[0].val, 
+						tmphp:vitInfo[0].val, 
+						atkLvl:0, 
+						defLvl:0, 
+						enrLvl:0, 
+						tmpgold: 0, 
+						gold:0, 
+						turnsToLive:0,
+						alive:true
+					};
 					phaseValue[1]++;
 	  			}
 	  			else
 	  			phaseControl++
 	  		}
-	  		
-
+	  		wait(8);
 	  		if (phaseControl==2)
 	  			switchPhase(phases.monsterAdvance);
 	  	}
@@ -448,11 +572,17 @@
 			input=false;
 		}
 
+		if (phase==phases.battle && input==true)
+		{
+			aCode=$("#code").val();
+			aP1=$("#param1").val();
+			aP2=$("#param2").val();
+			executeAction(aCode, aP1, aP2);
+			input=false;
+		}
+
 	  }
-		function processActionMedium()
-	  {}
-	  function processActionFast()
-	  {}
+
 	  
 
 	  //================  RENDER  ======================
@@ -467,8 +597,9 @@
 			drawPlayers();
 			drawMonsters();
 			
-			drawHUD()
-		};
+			drawHUD();
+			drawAnimation();
+		}
 
 		function drawPlayers()
 		{
@@ -530,21 +661,29 @@
       	{
       		context.fillStyle = "#333333";
       		context.fillRect(boardW, 0, infoBoxW, infoBoxH);
+
+      		context.drawImage(vitImg[player[0].vitLvl], boardW, 0, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[0].defLvl], boardW+56, 0, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[0].atkLvl], boardW, 56, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[0].enrLvl], boardW+56, 84, infoBoxW/2, 56);
+
+
+
       		wset=false;
       		hset=false;
       		if (phase==phases.battle)
       		{
-      			(battleback.tmpw<battleback.w) ? battleback.tmpw+=sizeSteps * 10:wset=true;
-      			(battleback.tmph<battleback.h) ? battleback.tmph+=sizeSteps * 10:hset=true;
+      			(battleback.tmpw<battleback.w) ? battleback.tmpw+=sizeSteps * 15:wset=true;
+      			(battleback.tmph<battleback.h) ? battleback.tmph+=sizeSteps * 15:hset=true;
 
       			if (wset && hset)
       			{
 
-      				(battlePlayer.tmpw<battlePlayer.w) ? battlePlayer.tmpw+=sizeSteps:0;
-      				(battlePlayer.tmph<battlePlayer.h) ? battlePlayer.tmph+=sizeSteps:0;
+      				(battlePlayer.tmpw<battlePlayer.w) ? battlePlayer.tmpw+=sizeSteps*3:0;
+      				(battlePlayer.tmph<battlePlayer.h) ? battlePlayer.tmph+=sizeSteps*3:0;
 
-      				(battleMonster.tmpw<battleMonster.w) ? battleMonster.tmpw+=sizeSteps:0;
-      				(battleMonster.tmph<battleMonster.h) ? battleMonster.tmph+=sizeSteps:0;
+      				(battleMonster.tmpw<battleMonster.w) ? battleMonster.tmpw+=sizeSteps*3:0;
+      				(battleMonster.tmph<battleMonster.h) ? battleMonster.tmph+=sizeSteps*3:0;
       				//console.log(battleMonster.tmpw+"  "+battleMonster.w);
       				//console.log(battleMonster.tmph+"  "+battleMonster.h);
       			}
@@ -562,11 +701,148 @@
       		if (wset && hset)
       		{
       			var mons = monsters[battleMonster.id];
-      			context.drawImage(images.charImg, battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
-      			context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
+
+      			if (player[currentPlayer].hp>0)      			{
+      				context.drawImage(images.charImg, battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
+      			} else{
+ 
+      				if (flashVal%2==1)
+      				{
+      					context.drawImage(images.charImg, battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);      					
+      				}
+      				if (flashVal>0) flashVal--;
+      					else{ 
+      						switchPhase(phases.playerActions);
+      						wait(10);
+      					}
+      			}
+
+      			if (monsters[battleMonster.id].hp>0)
+      			{
+      				context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
+      			}else{
+      				if (flashVal%2==1)
+      				{
+      					context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
+      				}
+      				if (flashVal>0) flashVal--;
+      				else {
+      					switchPhase(phases.playerActions);
+      					wait(10);
+      				}
+      			}
+				
+				context.fillStyle = 'black';
+				var atklvl =player[currentPlayer].atkLvl;
+				var deflvl =player[currentPlayer].defLvl;
+				var vitlvl =player[currentPlayer].vitLvl;
+
+				var atkIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(atkInfo[atklvl].w/2);
+				var atkIconY = (boardH/2)+0-(atkInfo[atklvl].h/2);
+				context.drawImage(atkImg[atklvl], atkIconX, atkIconY, atkInfo[atklvl].w,atkInfo[atklvl].h);
+
+				var vitIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(atkInfo[atklvl].w/2);
+				var vitIconY = (boardH/2)-atributeVoffset-(atkInfo[atklvl].h/2);
+				context.drawImage(vitImg[atklvl], vitIconX, vitIconY, vitInfo[vitlvl].w,vitInfo[vitlvl].h);
+
+				var defIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(defInfo[deflvl].w/2);
+				var defIconY = (boardH/2)+atributeVoffset-(defInfo[deflvl].h/2);
+				context.drawImage(defImg[deflvl], defIconX, defIconY+28, defInfo[deflvl].w,defInfo[deflvl].h);
+
+				var textOffset=30
+				context.font="50px Aharoni";
+				context.fillText(atkInfo[player[currentPlayer].atkLvl].val,atkIconX+textOffset+atkInfo[atklvl].w/2, atkIconY+atkInfo[atklvl].h/2);
+
+				context.fillText(player[currentPlayer].tmphp,vitIconX+textOffset+vitInfo[vitlvl].w/2, vitIconY+vitInfo[vitlvl].h/2);
+
+				context.fillText(defInfo[player[currentPlayer].defLvl].val,defIconX+textOffset+defInfo[deflvl].w/2, defIconY+28+defInfo[deflvl].h/2);
+				//-------
+
+				var atkIconX = (boardW/2)+(battleback.w/2)-atributeHoffset-(monsterBattleIcon.w/2);
+				var atkIconY = (boardH/2)+0-(monsterBattleIcon.h/2);
+				context.drawImage(monsterAtkImg, atkIconX, atkIconY, monsterBattleIcon.w, monsterBattleIcon.h);
+
+				var vitIconX = (boardW/2)+(battleback.w/2)-atributeHoffset-(monsterBattleIcon.w/2);
+				var vitIconY = (boardH/2)-atributeVoffset-(monsterBattleIcon.h/2);
+				context.drawImage(monsterHpImg, vitIconX, vitIconY, monsterBattleIcon.w,monsterBattleIcon.h);
+
+				var defIconX = (boardW/2)+(battleback.w/2)-atributeHoffset-(monsterBattleIcon.w/2);
+				var defIconY = (boardH/2)+atributeVoffset-(monsterBattleIcon.h/2);
+				context.drawImage(monsterDefImg, defIconX, defIconY, monsterBattleIcon.w,monsterBattleIcon.h);
+				
+				context.fillText(monsters[battleMonster.id].atk,atkIconX-textOffset*2+monsterBattleIcon.w/2, atkIconY+monsterBattleIcon.h/2+10);
+
+				context.fillText(monsters[battleMonster.id].tmphp,vitIconX-textOffset*2+monsterBattleIcon.w/2, vitIconY+monsterBattleIcon.h/2+10);
+
+				context.fillText(monsters[battleMonster.id].def,defIconX-textOffset*2+monsterBattleIcon.w/2, defIconY+monsterBattleIcon.h/2+10);
+
+				if (dmgText.ttl>0)
+				{
+					context.fillStyle = 'red';
+					context.fillText(dmgText.text,dmgText.x, dmgText.y);
+					dmgText.ttl--;
+				}
+
+
+
       		}
       		//context.drawImage(battlebackImg, 100, 100, 100,100);
       	}
+
+      	function drawAnimation()
+      	{
+
+      		if (currentAnimation.active)
+      		{
+      			var movStep= animInfo[currentAnimation.type][currentAnimation.stage].movStep;
+      			var sizeStep= animInfo[currentAnimation.type][currentAnimation.stage].sizeStep;
+      			if (animInfo[currentAnimation.type][currentAnimation.stage].x-animInfo[currentAnimation.type][currentAnimation.stage-1].x > 0)
+      				(currentAnimation.x -currentAnimation.tmpx > movStep) ? currentAnimation.tmpx+=movStep : currentAnimation.tmpx=currentAnimation.x;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].y-animInfo[currentAnimation.type][currentAnimation.stage-1].y > 0)
+				(currentAnimation.y - currentAnimation.tmpy> movStep) ? currentAnimation.tmpy+=movStep : currentAnimation.tmpy=currentAnimation.y;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].x-animInfo[currentAnimation.type][currentAnimation.stage-1].x < 0)
+				(currentAnimation.tmpx - currentAnimation.x>movStep) ? currentAnimation.tmpx-=movStep :0;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].y-animInfo[currentAnimation.type][currentAnimation.stage-1].y < 0)
+				(currentAnimation.tmpy - currentAnimation.y>movStep) ? currentAnimation.tmpy-=movStep :0;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].w-animInfo[currentAnimation.type][currentAnimation.stage-1].w > 0)
+				(currentAnimation.w-currentAnimation.tmpw > movStep) ? currentAnimation.tmpw+=sizeStep :currentAnimation.tmpw=currentAnimation.w;;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].h-animInfo[currentAnimation.type][currentAnimation.stage-1].h > 0)
+				(currentAnimation.h - currentAnimation.tmph >movStep) ? currentAnimation.tmph+=sizeStep :currentAnimation.tmph=currentAnimation.h;;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].w-animInfo[currentAnimation.type][currentAnimation.stage-1].w < 0)
+				(currentAnimation.tmpw - currentAnimation.w>movStep) ? currentAnimation.tmpw-=sizeStep :currentAnimation.tmpw=currentAnimation.w;;
+
+				if (animInfo[currentAnimation.type][currentAnimation.stage].h-animInfo[currentAnimation.type][currentAnimation.stage-1].h < 0)
+				(currentAnimation.tmph - currentAnimation.h>movStep) ? currentAnimation.tmph-=sizeStep :currentAnimation.tmph=currentAnimation.h; ;
+
+				if (currentAnimation.tmpx==currentAnimation.x && 
+					currentAnimation.tmpy== currentAnimation.y && 
+					currentAnimation.tmpw== currentAnimation.w &&
+					currentAnimation.tmph==currentAnimation.h)
+				{
+					if (currentAnimation.stage<animInfo[currentAnimation.type].length-1)
+					{
+						currentAnimation.stage++;
+	  					currentAnimation.x=animInfo[currentAnimation.type][currentAnimation.stage].x;
+	  					currentAnimation.y=animInfo[currentAnimation.type][currentAnimation.stage].y;
+	  					currentAnimation.w=animInfo[currentAnimation.type][currentAnimation.stage].w;
+	  					currentAnimation.h=animInfo[currentAnimation.type][currentAnimation.stage].h;
+					}
+					else
+						currentAnimation.active=false;
+				}
+
+
+				console.log("Animating "+currentAnimation.tmpw+" "+currentAnimation.w+" -- "+currentAnimation.tmph+" "+currentAnimation.h +"  "+movStep);
+				context.drawImage(animImg[currentAnimation.type], currentAnimation.basex+ currentAnimation.tmpx-(currentAnimation.tmpw/2), currentAnimation.basey+ currentAnimation.tmpy-(currentAnimation.tmph/2), currentAnimation.tmpw,currentAnimation.tmph);
+      		}
+      	}
+
 
 
       	//================  AUX FUNCTIONS  ======================
@@ -584,6 +860,25 @@
 			return board[boardpos].y;
       	}
 	  
+	  function startAnimation(anim, x, y)
+	  {
+	  	currentAnimation.active=true;
+	  	currentAnimation.type=anim;
+	  	currentAnimation.tmpx=animInfo[anim][0].x;
+	  	currentAnimation.tmpy=animInfo[anim][0].y;
+	  	currentAnimation.x=animInfo[anim][1].x;
+	  	currentAnimation.y=animInfo[anim][1].y;
+
+	  	currentAnimation.tmpw=animInfo[anim][0].w;
+	  	currentAnimation.tmph=animInfo[anim][0].h;
+	  	currentAnimation.w=animInfo[anim][1].w;
+	  	currentAnimation.h=animInfo[anim][1].h;
+
+	  	currentAnimation.basex=x;
+	  	currentAnimation.basey=y;
+
+	  	currentAnimation.stage=1;
+	  }
 	  function spawnMonster(lane, lvl, boss)
 	  {
 	  	/*monster[lane][lvl].alive=1;
@@ -593,7 +888,23 @@
 	  	console.log("Spawning lvl "+lvl+" monster at lane "+lane);
 	  	var box = (boss==true)?13:laneSize;
 
-	  	monsters.push({lvl:lvl, hp:monsterInfo[lvl].vit, alive:true,lane:lane, box:box, def:monsterInfo[lvl].def, tmpx:boardX(lane,13), tmpy:boardY(lane, 13), x:boardX(lane, box), y:boardY(lane, box), tmpw:0, tmph:0, toAdvance:monsterMoveTurns});
+	  	monsters.push({
+	  		lvl:lvl, 
+	  		hp:monsterInfo[lvl].vit, 
+	  		tmphp:monsterInfo[lvl].vit, 
+	  		alive:true,
+	  		lane:lane, 
+	  		box:box, 
+	  		def:monsterInfo[lvl].def, 
+	  		tmpx:boardX(lane,13), 
+	  		tmpy:boardY(lane, 13), 
+	  		x:boardX(lane, box), 
+	  		y:boardY(lane, box),
+	  		atk:monsterInfo[lvl].atk, 
+	  		tmpw:0, 
+	  		tmph:0, 
+	  		toAdvance:monsterMoveTurns
+	  	});
 	  }
 
 
@@ -612,8 +923,10 @@
 
 	  	//battle
 	  	if (phase==phases.battle){
-	  		actionList.push({code:"battle", param1:battleMonster.id, param2:0});
+	  		actionList.push({code:"atk", param1:battleMonster.id, param2:0});
+	  		actionList.push({code:"dmg", param1:battleMonster.id, param2:0});
 	  	}
+
 	  	//move
 	  	if (currentBox>0)
 	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox-1});
@@ -693,19 +1006,35 @@
 
 			if (code=="atk")
 			{
-				
-				monsters[p1].hp-=(p2-monsters[p1].def);
+				startAnimation("sword", battleMonster.x, battleMonster.y);
+
+				var finalDmg=p2-monsters[p1].def;
+				if (finalDmg<0) finalDmg=0;
+				monsters[p1].hp-=finalDmg;
+				dmgText.x=battleMonster.x-24;
+				dmgText.y=battleMonster.y-battleMonster.h;
+				dmgText.ttl=50;
+				dmgText.text="-"+finalDmg;
 				if (monsters[p1].hp<=0)
 				{
 					monsters[p1].alive=false;
 					player[currentPlayer].gold+= 5 + (monsters[p1].lvl *2);
 				}
+				
 				console.log("Attacking monster "+p1 +" Hp remaining: "+monsters[p1].hp+"  Alive: "+monsters[p1].alive);
 			}
 
 			if (code=="dmg")
 			{
-				player[currentPlayer].hp-=(p2-player[currentPlayer].def);
+				var mons = monsters[battleMonster.id];
+				var finalDmg=(Math.floor((Math.random() * mons.atk) + 1))- defInfo[player[currentPlayer].defLvl].val;
+				if (finalDmg<0) finalDmg=0;
+				player[currentPlayer].hp-= finalDmg;
+				dmgText.x=battlePlayer.x-24;
+				dmgText.y=battlePlayer.y-battlePlayer.h;
+				dmgText.ttl=50;
+				dmgText.text="-"+finalDmg;
+				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
 
 			}
 		}	  
@@ -731,3 +1060,4 @@
     </script>
   </body>
 </html>     
+
