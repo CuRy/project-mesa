@@ -18,7 +18,7 @@
     padding:5px; 
 }
 </style>
-  <body style="width:1920; height:1080">
+  <body style="width:1900; height:1060">
     <canvas style="float:left;" id="myCanvas" width="1920" height="1060"></canvas>
     <div id="hud" width="150" height="300">
     	p1<input type="number" name="param1"  id="param1" min="1" max="12">
@@ -35,7 +35,7 @@
 
     	//================  INIT  ======================
 		
-		var players = 2;
+		var players = 6;
 		var castleHP=50;
 		var tmpCastleHP=castleHP;
 		var lanes = 8;
@@ -68,7 +68,7 @@
 		var boardW=1620;
 		var boardH=1060;
 		var infoBoxW=112;
-		var infoBoxH=168;
+		var infoBoxH=200;
 		var battleback = {w:640, h:320, tmpw:0, tmph:0};
 		var battlePlayer={w:0, h:0, tmph:0,tmpw:0, x:659, y:560};
 		var battleMonster={id:0, w:0, h:0, tmph:0,tmpw:0,x:920, y:560};
@@ -273,7 +273,7 @@
 		var canvas = document.getElementById('myCanvas');
 			var context = canvas.getContext('2d');
 			var boardImg = new Image();
-			var charImg = new Image();
+			//var charImg = new Image();
 			var battlebackImg = new Image();
 			var images = {};
 			var monsterImg = {};
@@ -283,6 +283,7 @@
 			var vitImg = {};
 			var enrImg = {};
 			var animImg=[];
+			var charImg=[];
 			context.imageSmoothingEnabled = true;
 			
 		function loadImages(sources) {
@@ -311,6 +312,11 @@
           	defImg[d]=new Image();
           	defImg[d].src= "items/armor"+d+".gif";
           }
+          for (var i=0;i<13;i++)
+          {
+          	charImg[i]=new Image();
+          	charImg[i].src= "chars/char"+i+".png";
+          }
           for (var d in atkInfo)
           {
           	atkImg[d]=new Image();
@@ -336,9 +342,7 @@
 
       var sources = {
         boardImg: "board.png",
-        charImg: "chars/char1.png",
-        monster25Img: "monster/monster25.png",
-        monster1Img: "monster/monster1.png"
+
       };
 
       loadImages(sources);
@@ -501,7 +505,8 @@
 						tmpgold: 0, 
 						gold:0, 
 						turnsToLive:0,
-						alive:true
+						alive:true, 
+						character:phaseValue[1]
 					};
 					phaseValue[1]++;
 	  			}
@@ -617,7 +622,7 @@
 				(player[i].tmpy-player[i].y<movSteps)?player[i].tmpy+=movSteps:0;
 				(player[i].tmpy-player[i].y>movSteps)?player[i].tmpy-=movSteps:0;
 				
-				context.drawImage(images.charImg, player[i].tmpx-(charWidth/2), player[i].tmpy-(charHeight/2), charWidth, charHeight);
+				context.drawImage(charImg[player[i].character], player[i].tmpx-(charWidth/2), player[i].tmpy-(charHeight/2), charWidth, charHeight);
 				}
 			}
 
@@ -667,7 +672,30 @@
       		context.drawImage(atkImg[player[0].atkLvl], boardW, 56, infoBoxW/2, 84);
       		context.drawImage(enrImg[player[0].enrLvl], boardW+56, 84, infoBoxW/2, 56);
 
+			context.drawImage(vitImg[player[1].vitLvl], boardW+infoBoxW, 0, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[1].defLvl], boardW+56+infoBoxW, 0, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[1].atkLvl], boardW+infoBoxW, 56, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[1].enrLvl], boardW+infoBoxW+56, 84, infoBoxW/2, 56);
 
+			context.drawImage(vitImg[player[2].vitLvl], boardW, infoBoxH, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[2].defLvl], boardW+56, infoBoxH, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[2].atkLvl], boardW, infoBoxH+ 56, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[2].enrLvl], boardW+56, infoBoxH+84, infoBoxW/2, 56);
+
+			context.drawImage(vitImg[player[3].vitLvl], boardW+infoBoxW, infoBoxH, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[3].defLvl], boardW+56+infoBoxW, infoBoxH, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[3].atkLvl], boardW+infoBoxW, infoBoxH+ 56, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[3].enrLvl], boardW+infoBoxW+56, infoBoxH+84, infoBoxW/2, 56);
+
+      		context.drawImage(vitImg[player[4].vitLvl], boardW, infoBoxH*2, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[4].defLvl], boardW+56, infoBoxH*2, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[4].atkLvl], boardW, infoBoxH*2+ 56, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[4].enrLvl], boardW+56, infoBoxH*2+84, infoBoxW/2, 56);
+
+      		context.drawImage(vitImg[player[5].vitLvl], boardW+infoBoxW, infoBoxH*2, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[5].defLvl], boardW+56+infoBoxW, infoBoxH*2, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[5].atkLvl], boardW+infoBoxW, infoBoxH*2+ 56, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[5].enrLvl], boardW+infoBoxW+56, infoBoxH*2+84, infoBoxW/2, 56);
 
       		wset=false;
       		hset=false;
