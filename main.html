@@ -67,8 +67,7 @@
 		//HUD
 		var boardW=1620;
 		var boardH=1060;
-		var infoBoxW=112;
-		var infoBoxH=200;
+
 		var battleback = {w:640, h:320, tmpw:0, tmph:0};
 		var battlePlayer={w:0, h:0, tmph:0,tmpw:0, x:659, y:560};
 		var battleMonster={id:0, w:0, h:0, tmph:0,tmpw:0,x:920, y:560};
@@ -284,7 +283,9 @@
 			var enrImg = {};
 			var animImg=[];
 			var charImg=[];
+			var faceImg=[];
 			context.imageSmoothingEnabled = true;
+			var buttons=[];
 			
 		function loadImages(sources) {
         for(var src in sources) {
@@ -303,19 +304,22 @@
           monsterAtkImg = new Image();
           monsterDefImg = new Image();
           monsterHpImg = new Image();
+          goldImg = new Image();
+          hudImg = new Image();
+          hudImg1 = new Image();
+          hudImg2 = new Image();
           monsterAtkImg.src = "items/atkIcon.png";
           monsterDefImg.src = "items/defIcon.png";
           monsterHpImg.src = "items/hpIcon.png";
+          goldImg.src="items/gold.png";
+          hudImg.src="hudback.jpg";
+          hudImg1.src="hudback1.jpg";
+          hudImg2.src="hudback2.jpg";
 
           for (var d in defInfo)
           {
           	defImg[d]=new Image();
           	defImg[d].src= "items/armor"+d+".gif";
-          }
-          for (var i=0;i<13;i++)
-          {
-          	charImg[i]=new Image();
-          	charImg[i].src= "chars/char"+i+".png";
           }
           for (var d in atkInfo)
           {
@@ -331,6 +335,17 @@
           {
           	enrImg[d]=new Image();
           	enrImg[d].src= "items/boots"+d+".gif";
+          }
+
+          for (var i=0;i<13;i++)
+          {
+          	charImg[i]=new Image();
+          	charImg[i].src= "chars/char"+i+".png";
+          }
+          for (var i=0;i<13;i++)
+          {
+          	faceImg[i]=new Image();
+          	faceImg[i].src= "face/face"+i+".png";
           }
 
       
@@ -603,7 +618,9 @@
 			drawMonsters();
 			
 			drawHUD();
+			drawBattle();
 			drawAnimation();
+
 		}
 
 		function drawPlayers()
@@ -666,37 +683,104 @@
       	{
       		context.fillStyle = "#333333";
       		context.fillRect(boardW, 0, infoBoxW, infoBoxH);
+      		var iconsmall=56;
+      		var iconbig=84;
+      		var hpBarh=10;
+      		var infoBoxW=112;
+			var infoBoxH=206;
+			var texth=16;
 
-      		context.drawImage(vitImg[player[0].vitLvl], boardW, 0, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[0].defLvl], boardW+56, 0, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[0].atkLvl], boardW, 56, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[0].enrLvl], boardW+56, 84, infoBoxW/2, 56);
 
-			context.drawImage(vitImg[player[1].vitLvl], boardW+infoBoxW, 0, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[1].defLvl], boardW+56+infoBoxW, 0, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[1].atkLvl], boardW+infoBoxW, 56, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[1].enrLvl], boardW+infoBoxW+56, 84, infoBoxW/2, 56);
+			for (var i=0;i<player.length;i++)
+			{
+			var basex;
+			var basey;
+			if (i==0){
+				basex=0;
+				basey=0;
+				context.drawImage(hudImg1, boardW+basex, basey, infoBoxW, infoBoxH);
+			}else if (i==1) {
+				basex=infoBoxW;
+				basey=0;
+				context.drawImage(hudImg2, boardW+basex, basey, infoBoxW, infoBoxH);
+			}else if (i==2) {
+				basex=0;
+				basey=infoBoxH;
+				context.drawImage(hudImg2, boardW+basex, basey, infoBoxW, infoBoxH);
+			}else if (i==3) {
+				basex=infoBoxW;
+				basey=infoBoxH;
+				context.drawImage(hudImg1, boardW+basex, basey, infoBoxW, infoBoxH);
+			}else if (i==4) {
+				basex=0;
+				basey=infoBoxH*2;
+				context.drawImage(hudImg1, boardW+basex, basey, infoBoxW, infoBoxH);
+			}else if (i==5) {
+				basex=infoBoxW;
+				basey=infoBoxH*2;
+				context.drawImage(hudImg2, boardW+basex, basey, infoBoxW, infoBoxH);
+			};
 
-			context.drawImage(vitImg[player[2].vitLvl], boardW, infoBoxH, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[2].defLvl], boardW+56, infoBoxH, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[2].atkLvl], boardW, infoBoxH+ 56, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[2].enrLvl], boardW+56, infoBoxH+84, infoBoxW/2, 56);
+			//context.drawImage(hudImg, boardW+basex, basey, infoBoxW, infoBoxH);
+      		context.drawImage(faceImg[player[i].character], boardW+basex, 	basey, infoBoxW/2, 56);
+      		context.fillStyle = "red";
+      		context.fillRect(basex+boardW, basey+iconsmall, iconsmall, hpBarh);
+      		var barw = iconsmall * (player[i].tmphp / vitInfo[player[i].vitLvl].val);
+			context.fillStyle = "green";
+      		context.fillRect(basex+boardW, basey+iconsmall, barw, hpBarh);
+      		context.fillStyle="black";
+      		context.font="13px Arial";
+      		context.fillText("Vit: "+player[i].tmphp +"/"+vitInfo[player[i].vitLvl].val, basex+boardW+iconsmall, basey+10);
+      		context.fillText("Atk: "+atkInfo[player[i].atkLvl].val, basex+boardW+iconsmall, basey+10+texth);
+      		context.fillText("Def: "+defInfo[player[i].defLvl].val, basex+boardW+iconsmall, basey+10+texth*2);
+      		context.fillText("Enr: "+enrInfo[player[i].enrLvl].val, basex+boardW+iconsmall, basey+10+texth*3);
+      		context.fillStyle="#666600";
+      		context.font="bold 15px Arial";
+      		context.textAlign="right";
+      		context.fillText("$"+player[i].tmpgold, basex+boardW+iconsmall, basey+15+hpBarh+iconsmall);
+      		context.fillStyle="black";
+      		context.font="10px Arial";
+      		context.textAlign="left";
+      		context.drawImage(vitImg[player[i].vitLvl], basex+boardW+iconsmall, basey+iconsmall+hpBarh, infoBoxW/2, 56);
+      		context.drawImage(defImg[player[i].defLvl], basex+boardW+iconsmall, basey+iconsmall*2+hpBarh, infoBoxW/2, 84);
+      		context.drawImage(atkImg[player[i].atkLvl], basex+boardW, basey+iconsmall+hpBarh, infoBoxW/2, 84);
+      		context.drawImage(enrImg[player[i].enrLvl], basex+boardW, basey+iconsmall+iconbig+hpBarh, infoBoxW/2, 56);
+			}
 
-			context.drawImage(vitImg[player[3].vitLvl], boardW+infoBoxW, infoBoxH, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[3].defLvl], boardW+56+infoBoxW, infoBoxH, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[3].atkLvl], boardW+infoBoxW, infoBoxH+ 56, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[3].enrLvl], boardW+infoBoxW+56, infoBoxH+84, infoBoxW/2, 56);
+			if (phase==phases.playerActions)
+			{
+				var aList = getPossibleActions();
+				for (a in aList)
+				{
+					buttons.push({
+						x:boardW,
+						y:infoBoxH*3+(32*a),
+						h:32,
+						w:32,
+						img:"monsterAtkImg",
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+					});
+				}
+			}
 
-      		context.drawImage(vitImg[player[4].vitLvl], boardW, infoBoxH*2, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[4].defLvl], boardW+56, infoBoxH*2, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[4].atkLvl], boardW, infoBoxH*2+ 56, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[4].enrLvl], boardW+56, infoBoxH*2+84, infoBoxW/2, 56);
+			for (b in buttons){
+				var button= buttons[b];
+				context.drawImage(monsterAtkImg, button.x, button.y, button.w, button.h);
+				var txt;
+				if (button.action=="battle")
+				{
+					txt = "Lane "+monsters[button.p1].lane;
+					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
+				}
+				
+			}
+      		
+      	}
 
-      		context.drawImage(vitImg[player[5].vitLvl], boardW+infoBoxW, infoBoxH*2, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[5].defLvl], boardW+56+infoBoxW, infoBoxH*2, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[5].atkLvl], boardW+infoBoxW, infoBoxH*2+ 56, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[5].enrLvl], boardW+infoBoxW+56, infoBoxH*2+84, infoBoxW/2, 56);
-
+      	function drawBattle()
+      	{
       		wset=false;
       		hset=false;
       		if (phase==phases.battle)
@@ -986,13 +1070,6 @@
 
 	  	//buy
 
-
-
-	  	console.log("Possible actions:");
-	  	for (a in actionList)
-	  	{
-	  		console.log(actionList[a].code+ " P1: "+actionList[a].param1+" P2: "+actionList[a].param2);
-	  	}
 	  	return actionList;
 	  }
 		
@@ -1065,7 +1142,23 @@
 				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
 
 			}
-		}	  
+		}	 
+
+		function getRandomInt(max)
+		{
+			return Math.floor((Math.random() * max) + 1);
+		} 
+
+		function click(x, y)
+		{
+			for (b in buttons)
+			{
+				if (x>buttons[b].x && x<buttons[b].x+buttons[b].w && y>buttons[b].y && y<buttons[b].y+buttons[b].h )
+				{
+					console.log("Clicked "+buttons[b].action+" "+buttons[b].p1+" "+buttons[b].p2);
+				}
+			}
+		}
 	  
 
 		//================  EVENTS  ======================
@@ -1077,6 +1170,8 @@
 		var rect = canvas.getBoundingClientRect();
 		console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
 		n++;
+
+		click(Math.round(evt.clientX - rect.left), Math.round(evt.clientY-rect.top));
 
 		for (m in monsters)
 		{
