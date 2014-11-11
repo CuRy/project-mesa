@@ -20,12 +20,7 @@
 </style>
   <body style="width:1900; height:1060">
     <canvas style="float:left;" id="myCanvas" width="1920" height="1060"></canvas>
-    <div id="hud" width="150" height="300">
-    	p1<input type="number" name="param1"  id="param1" min="1" max="12">
-    	p2<input name="param2"  id="param2"  >
-    	code<input name="code"  id="code"  >
-    	<button type="button" onclick="inp()">Action!</button>
-    	
+   
 
     </div>
 
@@ -228,7 +223,7 @@
 		
 		
 		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
-		monsterInfo[25]={lvl:25, vit:50, atk:12, def:3,w:135,h:101};
+		monsterInfo[25]={lvl:26, vit:50, atk:12, def:3,w:135,h:101};
 		
 		var atkMax=5;
 		var vitMax=6;
@@ -308,6 +303,7 @@
           hudImg = new Image();
           hudImg1 = new Image();
           hudImg2 = new Image();
+          movImg = new Image();
           monsterAtkImg.src = "items/atkIcon.png";
           monsterDefImg.src = "items/defIcon.png";
           monsterHpImg.src = "items/hpIcon.png";
@@ -315,6 +311,7 @@
           hudImg.src="hudback.jpg";
           hudImg1.src="hudback1.jpg";
           hudImg2.src="hudback2.jpg";
+          movImg.src="icon/mov.png";
 
           for (var d in defInfo)
           {
@@ -575,9 +572,9 @@
 	  	}
 
 		//================  PHASE PLAYER ENERGY ======================
-		if (phase==phases.playerEnergy && input==true)
+		if (phase==phases.playerEnergy)
 		{
-			energy=$("#param1").val();
+			energy=prompt("Energia del jugador "+currentPlayer+1);//$("#param1").val();
 			switchPhase(phases.playerActions);
 		}
 
@@ -587,8 +584,8 @@
 			aCode=$("#code").val();
 			aP1=$("#param1").val();
 			aP2=$("#param2").val();
-			executeAction(aCode, aP1, aP2);
-			getPossibleActions();
+			//executeAction(aCode, aP1, aP2);
+			//getPossibleActions();
 			input=false;
 		}
 
@@ -597,7 +594,7 @@
 			aCode=$("#code").val();
 			aP1=$("#param1").val();
 			aP2=$("#param2").val();
-			executeAction(aCode, aP1, aP2);
+			//executeAction(aCode, aP1, aP2);
 			input=false;
 		}
 
@@ -681,15 +678,16 @@
 
       	function drawHUD()
       	{
-      		context.fillStyle = "#333333";
-      		context.fillRect(boardW, 0, infoBoxW, infoBoxH);
+      		
+      		//context.fillRect(0, 0, 2000, 2000);
       		var iconsmall=56;
       		var iconbig=84;
       		var hpBarh=10;
       		var infoBoxW=112;
 			var infoBoxH=206;
 			var texth=16;
-
+			context.fillStyle = "#CCCCCC";
+      		context.fillRect(boardW, 0, infoBoxW*2, boardH);
 
 			for (var i=0;i<player.length;i++)
 			{
@@ -747,33 +745,72 @@
       		context.drawImage(enrImg[player[i].enrLvl], basex+boardW, basey+iconsmall+iconbig+hpBarh, infoBoxW/2, 56);
 			}
 
-			if (phase==phases.playerActions)
+			//if (phase==phases.playerActions)
 			{
+				buttons = [];
 				var aList = getPossibleActions();
 				for (a in aList)
-				{
+				{ 
+					if (aList[a].code=="mov" || aList[a].code=="battle")
+					{
 					buttons.push({
 						x:boardW,
 						y:infoBoxH*3+(32*a),
 						h:32,
 						w:32,
-						img:"monsterAtkImg",
 						action:aList[a].code,
 						p1:aList[a].param1,
 						p2:aList[a].param2
-					});
+					})
+					}
+					else if (aList[a].code=="atk")
+					{
+						buttons.push({
+						x:battleMonster.x - (battleMonster.w/2),
+						y:battleMonster.y - (battleMonster.h/2),
+						h:battleMonster.h,
+						w:battleMonster.w,
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+						});
+						//console.log("battleMonster.x");
+					}
+					else if (aList[a].code=="dmg")
+					{
+						buttons.push({
+						x:battlePlayer.x - (battlePlayer.w/2),
+						y:battlePlayer.y - (battlePlayer.h/2),
+						h:battlePlayer.h,
+						w:battlePlayer.w,
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+						});
+					}
 				}
 			}
 
 			for (b in buttons){
 				var button= buttons[b];
-				context.drawImage(monsterAtkImg, button.x, button.y, button.w, button.h);
+				
 				var txt;
-				if (button.action=="battle")
+				if (button.action=="mov")
 				{
-					txt = "Lane "+monsters[button.p1].lane;
+					txt = "Lane "+button.p1 + " box "+button.p2;
+					context.drawImage(movImg, button.x, button.y, button.w, button.h);
 					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
 				}
+
+				if (button.action=="battle")
+				{
+					txt = "Lane "+monsters[button.p1].lane + " ("+monsters[button.p1].hp+")";
+					context.drawImage(monsterImg[monsters[button.p1].lvl], button.x, button.y, button.w, button.h);
+					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
+				}
+				
+				
+
 				
 			}
       		
@@ -815,12 +852,12 @@
       			var mons = monsters[battleMonster.id];
 
       			if (player[currentPlayer].hp>0)      			{
-      				context.drawImage(images.charImg, battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
+      				context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
       			} else{
  
       				if (flashVal%2==1)
       				{
-      					context.drawImage(images.charImg, battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);      					
+      					context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);      					
       				}
       				if (flashVal>0) flashVal--;
       					else{ 
@@ -1029,6 +1066,7 @@
 
 	  function getPossibleActions()
 	  {
+	  	if (phase==phases.intro) return;
 	  	var actionList=[];
 	  	var currentBox = player[currentPlayer].box;
 	  	var currentLane = player[currentPlayer].lane;
@@ -1111,7 +1149,10 @@
 
 			if (code=="atk")
 			{
+				p2=prompt("Damage");
 				startAnimation("sword", battleMonster.x, battleMonster.y);
+
+
 
 				var finalDmg=p2-monsters[p1].def;
 				if (finalDmg<0) finalDmg=0;
@@ -1131,6 +1172,10 @@
 
 			if (code=="dmg")
 			{
+				var r = confirm("Hit player?");
+				if (r == true) {
+				    
+				
 				var mons = monsters[battleMonster.id];
 				var finalDmg=(Math.floor((Math.random() * mons.atk) + 1))- defInfo[player[currentPlayer].defLvl].val;
 				if (finalDmg<0) finalDmg=0;
@@ -1140,7 +1185,7 @@
 				dmgText.ttl=50;
 				dmgText.text="-"+finalDmg;
 				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
-
+				}
 			}
 		}	 
 
@@ -1156,8 +1201,10 @@
 				if (x>buttons[b].x && x<buttons[b].x+buttons[b].w && y>buttons[b].y && y<buttons[b].y+buttons[b].h )
 				{
 					console.log("Clicked "+buttons[b].action+" "+buttons[b].p1+" "+buttons[b].p2);
+					executeAction(buttons[b].action, buttons[b].p1, buttons[b].p2);
 				}
 			}
+
 		}
 	  
 
@@ -1176,7 +1223,7 @@
 		for (m in monsters)
 		{
 			console.log("Moving monster, hp"+monsters[m].hp);
-			if (monsters[m].box!=13)monsters[m].box--;
+			//if (monsters[m].box!=13)monsters[m].box--;
 		}
       }, false);
       
