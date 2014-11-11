@@ -12,5 +12,6 @@
 -Gold/damage distribution
 -Win/Lose condition
 -Sound FX
+-Enemy attack animation
 
 -Map redo
