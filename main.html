@@ -233,6 +233,7 @@
 		itemInfo["vit"] = [];
 		itemInfo["def"] = [];
 		itemInfo["enr"] = [];
+		itemInfo["pot"] = [];
 
 		itemInfo["atk"][0]={cost:0, val:4, w:56, h:84};
 		itemInfo["atk"][1]={cost:40, val:6, w:56, h:84};
@@ -240,12 +241,12 @@
 		itemInfo["atk"][3]={cost:100, val:10, w:56, h:84};
 		itemInfo["atk"][4]={cost:160, val:12, w:56, h:84};
 
-		itemInfo["vit"][0]={cost:0, val:20, w:56, h:56};
-		itemInfo["vit"][1]={cost:20, val:24, w:56, h:56};
-		itemInfo["vit"][2]={cost:30, val:28, w:56, h:56};
-		itemInfo["vit"][3]={cost:50, val:32, w:56, h:56};
-		itemInfo["vit"][4]={cost:80, val:36, w:56, h:56};
-		itemInfo["vit"][5]={cost:120, val:40, w:56, h:56};
+		itemInfo["vit"][0]={cost:0, val:25, w:56, h:56};
+		itemInfo["vit"][1]={cost:20, val:30, w:56, h:56};
+		itemInfo["vit"][2]={cost:30, val:35, w:56, h:56};
+		itemInfo["vit"][3]={cost:50, val:40, w:56, h:56};
+		itemInfo["vit"][4]={cost:80, val:45, w:56, h:56};
+		itemInfo["vit"][5]={cost:120, val:50, w:56, h:56};
 
 		itemInfo["def"][0]={cost:0, val:0, w:56, h:84};
 		itemInfo["def"][1]={cost:30, val:1, w:56, h:84};
@@ -259,7 +260,8 @@
 		itemInfo["enr"][2]={cost:20, val:8, w:56, h:56};
 		itemInfo["enr"][3]={cost:30, val:10, w:56, h:56};
 		itemInfo["enr"][4]={cost:50, val:12, w:56, h:56};
-
+		
+		itemInfo["pot"][0]={cost:4, val:10, w:48, h:48};
 
 		for (var i=0;i<lanes;i++)
 		{
@@ -308,6 +310,8 @@
           hudImg2 = new Image();
           movImg = new Image();
           cancelImg = new Image();
+          energyImg = new Image();
+          endImg = new Image();
           monsterAtkImg.src = "items/atkIcon.png";
           monsterDefImg.src = "items/defIcon.png";
           monsterHpImg.src = "items/hpIcon.png";
@@ -317,6 +321,9 @@
           hudImg2.src="hudback2.jpg";
           movImg.src="icon/mov.png";
           cancelImg.src="icon/cancel.png";
+          energyImg.src="icon/energy.png";
+          endImg.src="icon/end.png";
+
 
 		 itemImg["def"]=[];
           for (var d in itemInfo["def"])
@@ -342,6 +349,11 @@
           	itemImg["enr"][d]=new Image();
           	itemImg["enr"][d].src= "items/boots"+d+".gif";
           }
+
+	   	  itemImg["pot"]=[];
+		  itemImg["pot"][0]=new Image();
+          itemImg["pot"][0].src= "items/potion.png";
+
 
           for (var i=0;i<13;i++)
           {
@@ -431,6 +443,7 @@
 
 	  	 if (toPhase==phases.playerEnergy)
 	  	{
+
 	  		phase=phases.playerEnergy;
 	  	}
 
@@ -477,6 +490,8 @@
 	  		waitLeft--;
 	  		return;
 	  	}
+
+
 
 	  	for (m in monsters)
 	  	{
@@ -586,6 +601,15 @@
 		//================  PHASE PLAYER ENERGY ======================
 		if (phase==phases.playerEnergy)
 		{
+			if (player[currentPlayer].alive==false)
+			{
+				player[currentPlayer].alive=true;
+				player[currentPlayer].hp=itemInfo["vit"][player[currentPlayer].vitLvl].val;
+				nextTurn();
+				wait(20);
+				return;
+			}
+			context.drawImage(faceImg[player[currentPlayer].character], board["center"].x-64, board["center"].y-64, 128, 128);
 			energy=prompt("Energia del jugador "+currentPlayer+1);//$("#param1").val();
 			switchPhase(phases.playerActions);
 		}
@@ -601,13 +625,22 @@
 			input=false;
 		}
 
-		if (phase==phases.battle && input==true)
+		if (phase==phases.battle)
 		{
-			aCode=$("#code").val();
-			aP1=$("#param1").val();
-			aP2=$("#param2").val();
-			//executeAction(aCode, aP1, aP2);
-			input=false;
+			if (player[currentPlayer].hp<=0)
+			{
+				player[currentPlayer].x=board["center"].x;
+				player[currentPlayer].y=board["center"].y;
+				player[currentPlayer].tmpx=board["center"].x;
+				player[currentPlayer].tmpy=board["center"].y;
+				player[currentPlayer].lane=getRandomInt(lanes-1);
+				player[currentPlayer].box=0;
+				player[currentPlayer].alive=false;
+				player[currentPlayer].gold=Math.floor(player[currentPlayer].gold*0.8);
+				wait(10);
+				nextTurn();
+
+			}
 		}
 
 	  }
@@ -639,7 +672,7 @@
 			//console.log(boardpos);
 			for (var i=0;i<players;i++)
 			{
-				if (typeof player[i] !== 'undefined')
+				if (typeof player[i] !== 'undefined' && player[i].alive==true)
 				{
 				player[i].x=boardX(player[i].lane, player[i].box);
 				player[i].y=boardY(player[i].lane, player[i].box);
@@ -701,6 +734,12 @@
 			context.fillStyle = "#CCCCCC";
       		context.fillRect(boardW, 0, infoBoxW*2, boardH);
 
+			if (phase==phases.playerEnergy && player[currentPlayer].alive==true)
+			{
+
+				context.drawImage(faceImg[player[currentPlayer].character], board["center"].x-64, board["center"].y-64, 128, 128);
+			}
+
 			for (var i=0;i<player.length;i++)
 			{
 			var basex;
@@ -739,7 +778,7 @@
 			context.fillStyle = "green";
       		context.fillRect(basex+boardW, basey+iconsmall, barw, hpBarh);
       		context.fillStyle="black";
-      		context.font="13px Arial";
+      		context.font="bold 12px Arial";
       		context.fillText("Vit: "+player[i].tmphp +"/"+itemInfo["vit"][player[i].vitLvl].val, basex+boardW+iconsmall, basey+10);
       		context.fillText("Atk: "+itemInfo["atk"][player[i].atkLvl].val, basex+boardW+iconsmall, basey+10+texth);
       		context.fillText("Def: "+itemInfo["def"][player[i].defLvl].val, basex+boardW+iconsmall, basey+10+texth*2);
@@ -761,8 +800,10 @@
 			{
 				buttons = [];
 				var aList = getPossibleActions();
+				var buyList=0;
 				for (a in aList)
 				{ 
+					
 					if (aList[a].code=="cancel")
 					{
 					buttons.push({
@@ -776,6 +817,18 @@
 					})
 					}
 					if (aList[a].code=="mov" || aList[a].code=="battle")
+					{
+					buttons.push({
+						x:boardW,
+						y:infoBoxH*3+(32*a),
+						h:32,
+						w:32,
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+					})
+					}
+					else if (aList[a].code=="end")
 					{
 					buttons.push({
 						x:boardW,
@@ -815,28 +868,41 @@
 					else if (aList[a].code=="buy")
 					{
 						buttons.push({
-						x:boardW,
-						y:infoBoxH*3+(32*a),
+						x:boardW+infoBoxW,
+						y:infoBoxH*3+(32*buyList)+56,
 						h:32,
 						w:32,
 						action:aList[a].code,
 						p1:aList[a].param1,
 						p2:aList[a].param2
 					})
+						buyList++;
 					}
 				}
 			}
 
+			context.fillStyle="black";
+      		context.font="bold 48px Arial";
+			if (buttons.length>0)
+			{
+				txt = energy;
+				context.drawImage(faceImg[player[currentPlayer].character], boardW-48+infoBoxW*2, infoBoxH*3, 48,48);
+				context.fillText(txt, boardW-48-48+infoBoxW*2, infoBoxH*3+48);
+			}
+
+			context.fillStyle="black";
+      		context.font="10px Arial";
 			for (b in buttons){
 				var button= buttons[b];
 				
 				var txt;
 				if (button.action=="mov")
 				{
-					txt = "Lane "+button.p1 + " box "+button.p2;
+					txt = "Lane "+(button.p1-0+1) + " box "+button.p2;
 					context.drawImage(movImg, button.x, button.y, button.w, button.h);
 					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
 				}
+
 
 				if (button.action=="battle")
 				{
@@ -844,7 +910,12 @@
 					context.drawImage(monsterImg[monsters[button.p1].lvl], button.x, button.y, button.w, button.h);
 					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
 				}
-				
+				if (button.action=="end")
+				{
+					//txt = "Lane "+button.p1 + " box "+button.p2;
+					context.drawImage(endImg, button.x, button.y, button.w, button.h);
+					//context.fillText(txt, button.x+button.w, button.y+(button.h/2));
+				}
 				if (button.action=="buy")
 				{
 					txt = button.p1 + ": " + itemInfo[button.p1][button.p2].val+ " ("+itemInfo[button.p1][button.p2].cost+"g)" ;
@@ -903,30 +974,25 @@
       				context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
       			} else{
  
-      				if (flashVal%2==1)
+      				if (flashVal%2==1&& flashVal>0)
       				{
       					context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);      					
+      					flashVal--;
       				}
-      				if (flashVal>0) flashVal--;
-      					else{ 
-      						switchPhase(phases.playerActions);
-      						wait(10);
-      					}
+      				
       			}
 
       			if (monsters[battleMonster.id].hp>0)
       			{
       				context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
       			}else{
-      				if (flashVal%2==1)
+      				if (flashVal%2==1 && flashVal>0)
       				{
       					context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
+      					flashVal--;
       				}
-      				if (flashVal>0) flashVal--;
-      				else {
-      					switchPhase(phases.playerActions);
-      					wait(10);
-      				}
+      				
+      		
       			}
 				
 				context.fillStyle = 'black';
@@ -1123,7 +1189,9 @@
 	  	if (phase==phases.battle){
 	  		actionList.push({code:"atk", param1:battleMonster.id, param2:0});
 	  		actionList.push({code:"dmg", param1:battleMonster.id, param2:0});
+	  		actionList.push({code:"cancel", p1:0, p2:0});
 	  	}
+
 
 	  	//move
 	  	if (currentBox>0)
@@ -1135,6 +1203,7 @@
 	  	if (currentBox==0)
 	  	{
 	  		for (var l=0;l<lanes;l++)
+	  			if (l!=player[currentPlayer].lane)
 	  			actionList.push({code:"mov", param1:l, param2:1});
 	  	}
 	  	
@@ -1154,12 +1223,10 @@
 	  		}
 	  	}
 
-	  	//exit battle
-	  	if (phase==phases.battle)
-	  	{
-	  		actionList.push({code:"cancel", p1:0, p2:0});
-	  	}
-
+		if (phase==phases.playerActions)
+		{
+			actionList.push({code:"end", param1:0, param2:0});	
+		}
 	  	//buy
 	  	if (currentBox==0)
 	  	{
@@ -1180,6 +1247,10 @@
 	  			actionList.push({code:"buy", param1:"enr", param2:(player[currentPlayer].enrLvl+1)});
 	  		}
 
+			if (player[currentPlayer].gold >= itemInfo["pot"][0].cost)
+	  		{
+	  			actionList.push({code:"buy", param1:"pot", param2:0});
+	  		}
 	  		
 
 	  	}
@@ -1207,6 +1278,9 @@
 
 				if (actionList[a].code=="cancel")
 					validAction=true;
+
+				if (actionList[a].code=="end")
+					validAction=true;
 			}
 
 			if (validAction==false)
@@ -1228,6 +1302,11 @@
 				battleMonster.id=p1;
 				switchPhase(phases.battle);
 			}
+			
+			if (code=="end")
+			{
+				energy=0;
+			}
 
 			if (code=="atk")
 			{
@@ -1248,7 +1327,7 @@
 					monsters[p1].alive=false;
 					player[currentPlayer].gold+= 5 + (monsters[p1].lvl *2);
 				}
-				
+				energy-=2;
 				console.log("Attacking monster "+p1 +" Hp remaining: "+monsters[p1].hp+"  Alive: "+monsters[p1].alive);
 			}
 
@@ -1267,11 +1346,14 @@
 				dmgText.ttl=50;
 				dmgText.text="-"+finalDmg;
 				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
+				energy-=2;
 				}
 			}
 
 			if (code=="buy")
 			{
+				var r = confirm("Comprar?");
+				if (r == false) return;
 				if (p1=="vit" && player[currentPlayer].gold >= itemInfo["vit"][player[currentPlayer].vitLvl+1].cost)
 				{
 					var hppercentage = player[currentPlayer].hp/itemInfo["vit"][player[currentPlayer].vitLvl].val;
@@ -1299,13 +1381,37 @@
 
 				}
 
+				if (p1=="pot" && player[currentPlayer].gold >= itemInfo["pot"][0].cost)
+				{
+					player[currentPlayer].gold-=itemInfo["pot"][0].cost;
+					player[currentPlayer].hp+=itemInfo["pot"][0].val;
+					if (player[currentPlayer].hp>itemInfo["vit"][player[currentPlayer].vitLvl].val)
+					{
+						player[currentPlayer].hp=itemInfo["vit"][player[currentPlayer].vitLvl].val;
+					}
+
+				}
+				energy--;
+
 			}
 
 			if (code=="cancel")
 			{
 				switchPhase(phases.playerActions);
 			}
+
+			if (energy<=0)
+			{
+				nextTurn();
+			}
 		}	 
+
+		function nextTurn(){
+				currentPlayer++;
+				if (currentPlayer>=players)
+					currentPlayer=0;
+				switchPhase(phases.playerEnergy);
+		}
 
 		function getRandomInt(max)
 		{
