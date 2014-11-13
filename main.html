@@ -50,10 +50,9 @@
 		var summonTurns=3;
 		var monsterMoveTurns=2;
 		var energy=0;
-		var defInfo=[];
-		var vitInfo=[];
-		var atkInfo=[];
-		var enrInfo=[];
+		var itemInfo=[];
+		var damageInfo=[];
+
 
 
 		var input=false;
@@ -230,32 +229,36 @@
 		var defMax=5;
 		var enrMax=5;
 
+		itemInfo["atk"] = [];
+		itemInfo["vit"] = [];
+		itemInfo["def"] = [];
+		itemInfo["enr"] = [];
 
-		atkInfo[0]={cost:0, val:4, w:56, h:84};
-		atkInfo[1]={cost:40, val:6, w:56, h:84};
-		atkInfo[2]={cost:60, val:8, w:56, h:84};
-		atkInfo[3]={cost:100, val:10, w:56, h:84};
-		atkInfo[4]={cost:160, val:12, w:56, h:84};
+		itemInfo["atk"][0]={cost:0, val:4, w:56, h:84};
+		itemInfo["atk"][1]={cost:40, val:6, w:56, h:84};
+		itemInfo["atk"][2]={cost:60, val:8, w:56, h:84};
+		itemInfo["atk"][3]={cost:100, val:10, w:56, h:84};
+		itemInfo["atk"][4]={cost:160, val:12, w:56, h:84};
 
-		vitInfo[0]={cost:0, val:20, w:56, h:56};
-		vitInfo[1]={cost:20, val:24, w:56, h:56};
-		vitInfo[2]={cost:30, val:28, w:56, h:56};
-		vitInfo[3]={cost:50, val:32, w:56, h:56};
-		vitInfo[4]={cost:80, val:36, w:56, h:56};
-		vitInfo[5]={cost:120, val:40, w:56, h:56};
+		itemInfo["vit"][0]={cost:0, val:20, w:56, h:56};
+		itemInfo["vit"][1]={cost:20, val:24, w:56, h:56};
+		itemInfo["vit"][2]={cost:30, val:28, w:56, h:56};
+		itemInfo["vit"][3]={cost:50, val:32, w:56, h:56};
+		itemInfo["vit"][4]={cost:80, val:36, w:56, h:56};
+		itemInfo["vit"][5]={cost:120, val:40, w:56, h:56};
 
-		defInfo[0]={cost:0, val:0, w:56, h:84};
-		defInfo[1]={cost:30, val:1, w:56, h:84};
-		defInfo[2]={cost:50, val:2, w:56, h:84};
-		defInfo[3]={cost:90, val:3, w:56, h:84};
-		defInfo[4]={cost:150, val:4, w:56, h:84};
-		defInfo[5]={cost:230, val:5, w:56, h:84};
+		itemInfo["def"][0]={cost:0, val:0, w:56, h:84};
+		itemInfo["def"][1]={cost:30, val:1, w:56, h:84};
+		itemInfo["def"][2]={cost:50, val:2, w:56, h:84};
+		itemInfo["def"][3]={cost:90, val:3, w:56, h:84};
+		itemInfo["def"][4]={cost:150, val:4, w:56, h:84};
+		itemInfo["def"][5]={cost:230, val:5, w:56, h:84};
 
-		enrInfo[0]={cost:0, val:4, w:56, h:56};
-		enrInfo[1]={cost:0, val:6, w:56, h:56};
-		enrInfo[2]={cost:0, val:8, w:56, h:56};
-		enrInfo[3]={cost:0, val:10, w:56, h:56};
-		enrInfo[4]={cost:0, val:12, w:56, h:56};
+		itemInfo["enr"][0]={cost:0, val:4, w:56, h:56};
+		itemInfo["enr"][1]={cost:15, val:6, w:56, h:56};
+		itemInfo["enr"][2]={cost:20, val:8, w:56, h:56};
+		itemInfo["enr"][3]={cost:30, val:10, w:56, h:56};
+		itemInfo["enr"][4]={cost:50, val:12, w:56, h:56};
 
 
 		for (var i=0;i<lanes;i++)
@@ -269,18 +272,18 @@
 			var boardImg = new Image();
 			//var charImg = new Image();
 			var battlebackImg = new Image();
+			var cancelImg = new Image();
 			var images = {};
 			var monsterImg = {};
-			
-			var defImg = {};
-			var atkImg = {};
-			var vitImg = {};
-			var enrImg = {};
+			var itemImg=[];
+
+		
 			var animImg=[];
 			var charImg=[];
 			var faceImg=[];
 			context.imageSmoothingEnabled = true;
 			var buttons=[];
+
 			
 		function loadImages(sources) {
         for(var src in sources) {
@@ -304,6 +307,7 @@
           hudImg1 = new Image();
           hudImg2 = new Image();
           movImg = new Image();
+          cancelImg = new Image();
           monsterAtkImg.src = "items/atkIcon.png";
           monsterDefImg.src = "items/defIcon.png";
           monsterHpImg.src = "items/hpIcon.png";
@@ -312,26 +316,31 @@
           hudImg1.src="hudback1.jpg";
           hudImg2.src="hudback2.jpg";
           movImg.src="icon/mov.png";
+          cancelImg.src="icon/cancel.png";
 
-          for (var d in defInfo)
+		 itemImg["def"]=[];
+          for (var d in itemInfo["def"])
           {
-          	defImg[d]=new Image();
-          	defImg[d].src= "items/armor"+d+".gif";
+          	itemImg["def"][d]=new Image();
+          	itemImg["def"][d].src= "items/armor"+d+".gif";
           }
-          for (var d in atkInfo)
+          itemImg["atk"]=[];
+          for (var d in itemInfo["atk"])
           {
-          	atkImg[d]=new Image();
-          	atkImg[d].src= "items/sword"+d+".gif";
+          	itemImg["atk"][d]=new Image();
+          	itemImg["atk"][d].src= "items/sword"+d+".gif";
           }
-          for (var d in vitInfo)
+          itemImg["vit"]=[];
+          for (var d in itemInfo["vit"])
           {
-          	vitImg[d]=new Image();
-          	vitImg[d].src= "items/helm"+d+".gif";
+          	itemImg["vit"][d]=new Image();
+          	itemImg["vit"][d].src= "items/helm"+d+".gif";
           }
-          for (var d in enrInfo)
+          itemImg["enr"]=[];
+          for (var d in itemInfo["enr"])
           {
-          	enrImg[d]=new Image();
-          	enrImg[d].src= "items/boots"+d+".gif";
+          	itemImg["enr"][d]=new Image();
+          	itemImg["enr"][d].src= "items/boots"+d+".gif";
           }
 
           for (var i=0;i<13;i++)
@@ -479,8 +488,11 @@
 	  	{
 	  		var pl=player[p];
 	  		(pl.hp<pl.tmphp)?pl.tmphp--:0;
-	  		(pl.hp>pl.tmphp)?pl.tmphp++:0;	  		
+	  		(pl.hp>pl.tmphp)?pl.tmphp++:0;	 
+	  		(pl.gold<pl.tmpgold)?pl.tmpgold--:0;
+	  		(pl.gold>pl.tmpgold)?pl.tmpgold++:0;	 		
 	  	}
+	
 	  	
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
@@ -509,13 +521,13 @@
 						tmpx:board["center"].x, 
 						tmpy:board["center"].y, 
 						vitLvl:0, 
-						hp:vitInfo[0].val, 
-						tmphp:vitInfo[0].val, 
+						hp:itemInfo["vit"][0].val, 
+						tmphp:itemInfo["vit"][0].val, 
 						atkLvl:0, 
 						defLvl:0, 
 						enrLvl:0, 
 						tmpgold: 0, 
-						gold:0, 
+						gold:1000, 
 						turnsToLive:0,
 						alive:true, 
 						character:phaseValue[1]
@@ -723,15 +735,15 @@
       		context.drawImage(faceImg[player[i].character], boardW+basex, 	basey, infoBoxW/2, 56);
       		context.fillStyle = "red";
       		context.fillRect(basex+boardW, basey+iconsmall, iconsmall, hpBarh);
-      		var barw = iconsmall * (player[i].tmphp / vitInfo[player[i].vitLvl].val);
+      		var barw = iconsmall * (player[i].tmphp / itemInfo["vit"][player[i].vitLvl].val);
 			context.fillStyle = "green";
       		context.fillRect(basex+boardW, basey+iconsmall, barw, hpBarh);
       		context.fillStyle="black";
       		context.font="13px Arial";
-      		context.fillText("Vit: "+player[i].tmphp +"/"+vitInfo[player[i].vitLvl].val, basex+boardW+iconsmall, basey+10);
-      		context.fillText("Atk: "+atkInfo[player[i].atkLvl].val, basex+boardW+iconsmall, basey+10+texth);
-      		context.fillText("Def: "+defInfo[player[i].defLvl].val, basex+boardW+iconsmall, basey+10+texth*2);
-      		context.fillText("Enr: "+enrInfo[player[i].enrLvl].val, basex+boardW+iconsmall, basey+10+texth*3);
+      		context.fillText("Vit: "+player[i].tmphp +"/"+itemInfo["vit"][player[i].vitLvl].val, basex+boardW+iconsmall, basey+10);
+      		context.fillText("Atk: "+itemInfo["atk"][player[i].atkLvl].val, basex+boardW+iconsmall, basey+10+texth);
+      		context.fillText("Def: "+itemInfo["def"][player[i].defLvl].val, basex+boardW+iconsmall, basey+10+texth*2);
+      		context.fillText("Enr: "+itemInfo["enr"][player[i].enrLvl].val, basex+boardW+iconsmall, basey+10+texth*3);
       		context.fillStyle="#666600";
       		context.font="bold 15px Arial";
       		context.textAlign="right";
@@ -739,10 +751,10 @@
       		context.fillStyle="black";
       		context.font="10px Arial";
       		context.textAlign="left";
-      		context.drawImage(vitImg[player[i].vitLvl], basex+boardW+iconsmall, basey+iconsmall+hpBarh, infoBoxW/2, 56);
-      		context.drawImage(defImg[player[i].defLvl], basex+boardW+iconsmall, basey+iconsmall*2+hpBarh, infoBoxW/2, 84);
-      		context.drawImage(atkImg[player[i].atkLvl], basex+boardW, basey+iconsmall+hpBarh, infoBoxW/2, 84);
-      		context.drawImage(enrImg[player[i].enrLvl], basex+boardW, basey+iconsmall+iconbig+hpBarh, infoBoxW/2, 56);
+      		context.drawImage(itemImg["vit"][player[i].vitLvl], basex+boardW+iconsmall, basey+iconsmall+hpBarh, infoBoxW/2, 56);
+      		context.drawImage(itemImg["def"][player[i].defLvl], basex+boardW+iconsmall, basey+iconsmall*2+hpBarh, infoBoxW/2, 84);
+      		context.drawImage(itemImg["atk"][player[i].atkLvl], basex+boardW, basey+iconsmall+hpBarh, infoBoxW/2, 84);
+      		context.drawImage(itemImg["enr"][player[i].enrLvl], basex+boardW, basey+iconsmall+iconbig+hpBarh, infoBoxW/2, 56);
 			}
 
 			//if (phase==phases.playerActions)
@@ -751,6 +763,18 @@
 				var aList = getPossibleActions();
 				for (a in aList)
 				{ 
+					if (aList[a].code=="cancel")
+					{
+					buttons.push({
+						x:boardW,
+						y:infoBoxH*3+(32*a),
+						h:32,
+						w:32,
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+					})
+					}
 					if (aList[a].code=="mov" || aList[a].code=="battle")
 					{
 					buttons.push({
@@ -788,6 +812,18 @@
 						p2:aList[a].param2
 						});
 					}
+					else if (aList[a].code=="buy")
+					{
+						buttons.push({
+						x:boardW,
+						y:infoBoxH*3+(32*a),
+						h:32,
+						w:32,
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+					})
+					}
 				}
 			}
 
@@ -809,7 +845,19 @@
 					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
 				}
 				
-				
+				if (button.action=="buy")
+				{
+					txt = button.p1 + ": " + itemInfo[button.p1][button.p2].val+ " ("+itemInfo[button.p1][button.p2].cost+"g)" ;
+					context.drawImage(itemImg[button.p1][button.p2], button.x, button.y, button.w, button.h);
+					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
+				}
+
+				if (button.action=="cancel")
+				{
+					
+					context.drawImage(cancelImg, button.x, button.y, button.w, button.h);
+					
+				}
 
 				
 			}
@@ -886,25 +934,25 @@
 				var deflvl =player[currentPlayer].defLvl;
 				var vitlvl =player[currentPlayer].vitLvl;
 
-				var atkIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(atkInfo[atklvl].w/2);
-				var atkIconY = (boardH/2)+0-(atkInfo[atklvl].h/2);
-				context.drawImage(atkImg[atklvl], atkIconX, atkIconY, atkInfo[atklvl].w,atkInfo[atklvl].h);
+				var atkIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["atk"][atklvl].w/2);
+				var atkIconY = (boardH/2)+0-(itemInfo["atk"][atklvl].h/2);
+				context.drawImage(itemImg["atk"][atklvl], atkIconX, atkIconY, itemInfo["atk"][atklvl].w,itemInfo["atk"][atklvl].h);
 
-				var vitIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(atkInfo[atklvl].w/2);
-				var vitIconY = (boardH/2)-atributeVoffset-(atkInfo[atklvl].h/2);
-				context.drawImage(vitImg[atklvl], vitIconX, vitIconY, vitInfo[vitlvl].w,vitInfo[vitlvl].h);
+				var vitIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["atk"][atklvl].w/2);
+				var vitIconY = (boardH/2)-atributeVoffset-(itemInfo["atk"][atklvl].h/2);
+				context.drawImage(itemImg["vit"][atklvl], vitIconX, vitIconY, itemInfo["vit"][vitlvl].w,itemInfo["vit"][vitlvl].h);
 
-				var defIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(defInfo[deflvl].w/2);
-				var defIconY = (boardH/2)+atributeVoffset-(defInfo[deflvl].h/2);
-				context.drawImage(defImg[deflvl], defIconX, defIconY+28, defInfo[deflvl].w,defInfo[deflvl].h);
+				var defIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["def"][deflvl].w/2);
+				var defIconY = (boardH/2)+atributeVoffset-(itemInfo["def"][deflvl].h/2);
+				context.drawImage(itemImg["def"][deflvl], defIconX, defIconY+28, itemInfo["def"][deflvl].w,itemInfo["def"][deflvl].h);
 
 				var textOffset=30
 				context.font="50px Aharoni";
-				context.fillText(atkInfo[player[currentPlayer].atkLvl].val,atkIconX+textOffset+atkInfo[atklvl].w/2, atkIconY+atkInfo[atklvl].h/2);
+				context.fillText(itemInfo["atk"][player[currentPlayer].atkLvl].val,atkIconX+textOffset+itemInfo["atk"][atklvl].w/2, atkIconY+itemInfo["atk"][atklvl].h/2);
 
-				context.fillText(player[currentPlayer].tmphp,vitIconX+textOffset+vitInfo[vitlvl].w/2, vitIconY+vitInfo[vitlvl].h/2);
+				context.fillText(player[currentPlayer].tmphp,vitIconX+textOffset+itemInfo["vit"][vitlvl].w/2, vitIconY+itemInfo["vit"][vitlvl].h/2);
 
-				context.fillText(defInfo[player[currentPlayer].defLvl].val,defIconX+textOffset+defInfo[deflvl].w/2, defIconY+28+defInfo[deflvl].h/2);
+				context.fillText(itemInfo["def"][player[currentPlayer].defLvl].val,defIconX+textOffset+itemInfo["def"][deflvl].w/2, defIconY+28+itemInfo["def"][deflvl].h/2);
 				//-------
 
 				var atkIconX = (boardW/2)+(battleback.w/2)-atributeHoffset-(monsterBattleIcon.w/2);
@@ -1090,7 +1138,7 @@
 	  			actionList.push({code:"mov", param1:l, param2:1});
 	  	}
 	  	
-	  	//atack
+	  	//battle
 	  	for (m in monsters)
 	  	{
 	  		if (monsters[m].alive==true)
@@ -1106,7 +1154,35 @@
 	  		}
 	  	}
 
+	  	//exit battle
+	  	if (phase==phases.battle)
+	  	{
+	  		actionList.push({code:"cancel", p1:0, p2:0});
+	  	}
+
 	  	//buy
+	  	if (currentBox==0)
+	  	{
+	  		if (player[currentPlayer].vitLvl<itemInfo["vit"].length-1 && player[currentPlayer].gold >= itemInfo["vit"][player[currentPlayer].vitLvl+1].cost)
+	  		{
+	  			actionList.push({code:"buy", param1:"vit", param2:(player[currentPlayer].vitLvl+1)});
+	  		}
+	  		if (player[currentPlayer].defLvl<itemInfo["def"].length-1 && player[currentPlayer].gold >= itemInfo["def"][player[currentPlayer].defLvl+1].cost)
+	  		{
+	  			actionList.push({code:"buy", param1:"def", param2:(player[currentPlayer].defLvl+1)});
+	  		}
+	  		if (player[currentPlayer].atkLvl<itemInfo["atk"].length-1 && player[currentPlayer].gold >= itemInfo["atk"][player[currentPlayer].atkLvl+1].cost)
+	  		{
+	  			actionList.push({code:"buy", param1:"atk", param2:(player[currentPlayer].atkLvl+1)});
+	  		}
+	  		if (player[currentPlayer].enrLvl<itemInfo["enr"].length-1 && player[currentPlayer].gold >= itemInfo["enr"][player[currentPlayer].enrLvl+1].cost)
+	  		{
+	  			actionList.push({code:"buy", param1:"enr", param2:(player[currentPlayer].enrLvl+1)});
+	  		}
+
+	  		
+
+	  	}
 
 	  	return actionList;
 	  }
@@ -1124,6 +1200,12 @@
 					validAction=true;
 
 				if (actionList[a].code=="battle" && actionList[a].param1==p1)
+					validAction=true;
+
+				if (actionList[a].code=="buy")
+					validAction=true;
+
+				if (actionList[a].code=="cancel")
 					validAction=true;
 			}
 
@@ -1177,7 +1259,7 @@
 				    
 				
 				var mons = monsters[battleMonster.id];
-				var finalDmg=(Math.floor((Math.random() * mons.atk) + 1))- defInfo[player[currentPlayer].defLvl].val;
+				var finalDmg=(Math.floor((Math.random() * mons.atk) + 1))- itemInfo["def"][player[currentPlayer].defLvl].val;
 				if (finalDmg<0) finalDmg=0;
 				player[currentPlayer].hp-= finalDmg;
 				dmgText.x=battlePlayer.x-24;
@@ -1186,6 +1268,42 @@
 				dmgText.text="-"+finalDmg;
 				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
 				}
+			}
+
+			if (code=="buy")
+			{
+				if (p1=="vit" && player[currentPlayer].gold >= itemInfo["vit"][player[currentPlayer].vitLvl+1].cost)
+				{
+					var hppercentage = player[currentPlayer].hp/itemInfo["vit"][player[currentPlayer].vitLvl].val;
+					player[currentPlayer].gold-=itemInfo["vit"][player[currentPlayer].vitLvl+1].cost;
+					player[currentPlayer].vitLvl++;
+					player[currentPlayer].hp=Math.round(itemInfo["vit"][player[currentPlayer].vitLvl].val*hppercentage);
+
+				}
+				if (p1=="def" && player[currentPlayer].gold >= itemInfo["def"][player[currentPlayer].defLvl+1].cost)
+				{
+					player[currentPlayer].gold-=itemInfo["def"][player[currentPlayer].defLvl+1].cost;
+					player[currentPlayer].defLvl++;
+
+				}
+				if (p1=="atk" && player[currentPlayer].gold >= itemInfo["atk"][player[currentPlayer].atkLvl+1].cost)
+				{
+					player[currentPlayer].gold-=itemInfo["atk"][player[currentPlayer].atkLvl+1].cost;
+					player[currentPlayer].atkLvl++;
+
+				}
+				if (p1=="enr" && player[currentPlayer].gold >= itemInfo["enr"][player[currentPlayer].enrLvl+1].cost)
+				{
+					player[currentPlayer].gold-=itemInfo["enr"][player[currentPlayer].enrLvl+1].cost;
+					player[currentPlayer].enrLvl++;
+
+				}
+
+			}
+
+			if (code=="cancel")
+			{
+				switchPhase(phases.playerActions);
 			}
 		}	 
 

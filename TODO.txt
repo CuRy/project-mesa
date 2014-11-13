@@ -1,11 +1,9 @@
 -Player/Monster offset
 -Castle attack animation
 -Energy icon/meter
--Cancel battle action
 -Turn switching
 -Sideway managment
 -Player dead
--Item buying
 -Potion buying
 -Player selection
 -Hp bar fix (-1)
@@ -13,5 +11,6 @@
 -Win/Lose condition
 -Sound FX
 -Enemy attack animation
+-Fix char width/height
 
 -Map redo
