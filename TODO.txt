@@ -1,13 +1,7 @@
--Player/Monster offset
--Castle attack animation
 -Sideway managment
--Player dead
 -Player selection
--Hp bar fix (-1)
--Gold/damage distribution
 -Win/Lose condition
 -Sound FX
--Enemy attack animation
 -Fix char width/height
 
 -Map redo

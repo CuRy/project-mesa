@@ -48,6 +48,7 @@
 		var monsters=[];
 		var laneSize=12;
 		var summonTurns=3;
+		var summonTurnsLeft=0;
 		var monsterMoveTurns=2;
 		var energy=0;
 		var itemInfo=[];
@@ -68,6 +69,7 @@
 		var atributeHoffset=50;
 		var atributeVoffset=70;
 		var monsterBattleIcon={h:48, w:48};
+		var offsetMax=25;
 
 		var animInfo = [];
 		var dmgText ={ttl:0,x:0,y:0, text:""};
@@ -77,6 +79,14 @@
 		animInfo["sword"][0]={x:-100, y:-100, w:0,h:0, sizeStep:48, movStep:16};
 		animInfo["sword"][1]={x:0, y:0, w:192,h:192, sizeStep:48, movStep:16};
 		animInfo["sword"][2]={x:100, y:100, w:0,h:0, sizeStep:48, movStep:16};
+
+		animInfo["hit"] = [];
+
+		animInfo["hit"][0]={x:100, y:-100, w:0,h:0, sizeStep:16, movStep:16};
+		animInfo["hit"][1]={x:50, y:-50, w:50,h:50, sizeStep:16, movStep:16};
+		animInfo["hit"][2]={x:0, y:0, w:160,h:150, sizeStep:32, movStep:16};
+		animInfo["hit"][3]={x:20, y:20, w:160,h:150, sizeStep:16, movStep:16};
+		animInfo["hit"][4]={x:30, y:30, w:0,h:0, sizeStep:50, movStep:16};
 
 		var currentAnimation={active:false, type:"", stage:0, x:0, y:0, tmpx:0, tmpy:0, w:0, h:0, tmpw:0,tmph:0, basex:0, basey:0};
 
@@ -88,6 +98,8 @@
 			playerEnergy:"playerEnergy",
 			playerActions:"playerActions", 
 			battle:"battle",
+			playerDead:"playerDead",
+			monsterDead:"monsterDead",
 			playerAtk:"playerAtk",
 			enemyAtk:"enemyAtk"
 		}
@@ -221,7 +233,8 @@
 
 		
 		
-		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:50,h:50};
+		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:57,h:48};
+		monsterInfo[1]={lvl:2, vit:6, atk:4, def:0,w:40,h:70};
 		monsterInfo[25]={lvl:26, vit:50, atk:12, def:3,w:135,h:101};
 		
 		var atkMax=5;
@@ -293,11 +306,11 @@
           images[src].src = sources[src];
           }
 
-          monsterImg[0]=new Image();
-          monsterImg[0].src = "monster/monster1.png";
-
-          monsterImg[25]=new Image();
-          monsterImg[25].src = "monster/monster25.png";
+          for (m in monsterInfo)
+          {
+          	monsterImg[m]=new Image();
+          	monsterImg[m].src = "monster/monster"+(m-0+1)+".png";
+          }
 
           battlebackImg.src = "battleback.jpg";
 
@@ -369,6 +382,9 @@
       
           animImg["sword"]=new Image();
           animImg["sword"].src="anim/sword.png";
+
+          animImg["hit"]=new Image();
+          animImg["hit"].src="anim/hit.png";
         }
       
     
@@ -381,6 +397,7 @@
       loadImages(sources);
 	  setInterval(function(){render()}, 30);
 	  setInterval(function(){processAction()}, 100);
+	  setInterval(function(){addTemps()}, 100);
 	  
 
 	  //================  ACTION  ======================
@@ -418,6 +435,7 @@
 
 	  	if (toPhase==phases.summon)
 	  	{
+	  		summonTurnsLeft--;
 	  		phase=phases.summon;
 	  	}
 
@@ -476,6 +494,15 @@
 	  		
 	  	}
 
+	  	if (toPhase==phases.playerDead || toPhase==phases.monsterDead)
+	  	{
+	  		flashVal=15;
+
+	  		phase=toPhase;
+
+	  	}
+
+
 	  	console.log("Phase is: "+phase);
 	  }
 
@@ -483,14 +510,8 @@
 	  	waitLeft+=time;
 	  }
 
-
-	  function processAction()
+	  function addTemps()
 	  {
-	  	if (waitLeft>0){
-	  		waitLeft--;
-	  		return;
-	  	}
-
 
 
 	  	for (m in monsters)
@@ -507,8 +528,18 @@
 	  		(pl.gold<pl.tmpgold)?pl.tmpgold--:0;
 	  		(pl.gold>pl.tmpgold)?pl.tmpgold++:0;	 		
 	  	}
-	
-	  	
+		(castleHP>tmpCastleHP)?tmpCastleHP++:0;
+		(castleHP<tmpCastleHP)?tmpCastleHP--:0;
+	  }
+
+	  function processAction()
+	  {
+	  	if (waitLeft>0){
+	  		waitLeft--;
+	  		return;
+	  	}
+
+ 	
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
 	  	{
@@ -528,31 +559,13 @@
 	  		{
 	  			if (phaseValue[1]<phaseComplete[1])
 	  			{
-					player[phaseValue[1]] = {
-						lane:phaseValue[1], 
-						box:0, 
-						x:board["center"].x, 
-						y:board["center"].y, 
-						tmpx:board["center"].x, 
-						tmpy:board["center"].y, 
-						vitLvl:0, 
-						hp:itemInfo["vit"][0].val, 
-						tmphp:itemInfo["vit"][0].val, 
-						atkLvl:0, 
-						defLvl:0, 
-						enrLvl:0, 
-						tmpgold: 0, 
-						gold:1000, 
-						turnsToLive:0,
-						alive:true, 
-						character:phaseValue[1]
-					};
+					spawnPlayer(phaseValue[1]);
 					phaseValue[1]++;
 	  			}
 	  			else
 	  			phaseControl++
 	  		}
-	  		wait(8);
+	  		wait(1);
 	  		if (phaseControl==2)
 	  			switchPhase(phases.monsterAdvance);
 	  	}
@@ -563,8 +576,15 @@
 	  		//var lane = $("#param1").val();
 	  		//console.log("spawnMonster on lane "+ lane);
 	  		var spawnLane=Math.floor((Math.random() * lanes));
-	  		spawnMonster(spawnLane, laneLvl[spawnLane]);
-	  		laneLvl[spawnLane]++;
+	  		if (summonTurnsLeft<=0)
+	  		{
+	  			spawnMonster(spawnLane, laneLvl[spawnLane]);
+	  			laneLvl[spawnLane]++;
+	  			summonTurnsLeft=summonTurns;
+	  		}
+
+
+	  		
 	  		switchPhase(phases.playerEnergy);
 	  	}
 
@@ -578,14 +598,25 @@
 	  			{
 	  				if (monsters[m].toAdvance==0)
 	  				{
-	  					console.log("Monster lvl "+monsters[m].lvl+" in lane "+ monsters[m].lane + " advances");
-		  				if (monsters[m].box>0)
-		  					monsters[m].box--;
-		  				else
-		  					attackCastle(monsters[m].lvl);
-
-		  				monsters[m].toAdvance=monsterMoveTurns;
+	  					monsters[m].toAdvance=monsterMoveTurns;
 		  				phaseValue[0]++;
+
+	  					console.log("Monster lvl "+monsters[m].lvl+" in lane "+ monsters[m].lane + " advances");
+		  				if (monsters[m].box>1)
+		  				{
+		  					monsters[m].box--;
+		  					wait(5);
+		  					return;
+		  				}
+		  				else
+		  				{
+		  					attackCastle(monsters[m]);
+		  					wait(10);
+		  					return;
+		  				}
+
+		  				
+
 	  				}
 
 
@@ -625,6 +656,26 @@
 			input=false;
 		}
 
+		if (phase==phases.playerDead)
+		{
+			console.log("Flashval: "+flashVal);
+			if (flashVal>0)
+				flashVal--;
+			else
+			{
+				wait(15);
+				nextTurn();
+			}
+		}
+
+		if (phase==phases.monsterDead)
+		{
+			if (flashVal>0)
+				flashVal--;
+			else
+				switchPhase(phases.playerActions);
+		}
+
 		if (phase==phases.battle)
 		{
 			if (player[currentPlayer].hp<=0)
@@ -637,8 +688,15 @@
 				player[currentPlayer].box=0;
 				player[currentPlayer].alive=false;
 				player[currentPlayer].gold=Math.floor(player[currentPlayer].gold*0.8);
-				wait(10);
-				nextTurn();
+				switchPhase(phases.playerDead);
+
+			}
+			if (monsters[battleMonster.id].hp<=0)
+			{
+				
+				monsters[battleMonster.id].alive=false;
+				//player[currentPlayer].gold=Math.floor(player[currentPlayer].gold*0.8);
+				switchPhase(phases.monsterDead);
 
 			}
 		}
@@ -675,7 +733,9 @@
 				if (typeof player[i] !== 'undefined' && player[i].alive==true)
 				{
 				player[i].x=boardX(player[i].lane, player[i].box);
+				(boxIsBusy(player[i].lane, player[i].box))?player[i].x+=player[i].offsetx:0;
 				player[i].y=boardY(player[i].lane, player[i].box);
+				(boxIsBusy(player[i].lane, player[i].box))?player[i].y+=player[i].offsety:0;
 				(player[i].tmpx-player[i].x<movSteps)?player[i].tmpx+=movSteps:0;
 				(player[i].tmpx-player[i].x>movSteps)?player[i].tmpx-=movSteps:0;
 				(player[i].tmpy-player[i].y<movSteps)?player[i].tmpy+=movSteps:0;
@@ -696,8 +756,9 @@
 				var mons = monsters[i];
 				//console.log("monster lane: "+mons.lane);
 				mons.x = boardX(mons.lane, mons.box);
-
+				(boxIsBusy(mons.lane, mons.box))?mons.x+=mons.offsetx:0;
 				mons.y = boardY(mons.lane, mons.box);
+				(boxIsBusy(mons.lane, mons.box))?mons.y+=mons.offsety:0;
 
 				var lvl =mons.lvl;
 				if (mons.alive)
@@ -734,11 +795,22 @@
 			context.fillStyle = "#CCCCCC";
       		context.fillRect(boardW, 0, infoBoxW*2, boardH);
 
+      		context.fillStyle = "#000000";
+			context.font="bold 44px Arial";
+      		context.fillText(tmpCastleHP, board["center"].x-30, board["center"].y-30);
+
 			if (phase==phases.playerEnergy && player[currentPlayer].alive==true)
 			{
 
 				context.drawImage(faceImg[player[currentPlayer].character], board["center"].x-64, board["center"].y-64, 128, 128);
 			}
+
+			if (dmgText.ttl>0 && phase==phases.monsterAdvance)
+				{
+					context.fillStyle = 'red';
+					context.fillText(dmgText.text,dmgText.x, dmgText.y);
+					dmgText.ttl--;
+				}
 
 			for (var i=0;i<player.length;i++)
 			{
@@ -939,7 +1011,7 @@
       	{
       		wset=false;
       		hset=false;
-      		if (phase==phases.battle)
+      		if (phase==phases.battle || phase==phases.playerDead || phase==phases.monsterDead)
       		{
       			(battleback.tmpw<battleback.w) ? battleback.tmpw+=sizeSteps * 15:wset=true;
       			(battleback.tmph<battleback.h) ? battleback.tmph+=sizeSteps * 15:hset=true;
@@ -959,7 +1031,8 @@
 
       			
       		}
-      		if (phase!=phases.battle)
+
+      		if (phase!=phases.battle && phase!=phases.playerDead && phase!=phases.monsterDead)
       		{
       			(battleback.tmpw>0) ? battleback.tmpw-=sizeSteps * 10:0;
       			(battleback.tmph>0) ? battleback.tmph-=sizeSteps * 10:0;
@@ -970,30 +1043,16 @@
       		{
       			var mons = monsters[battleMonster.id];
 
-      			if (player[currentPlayer].hp>0)      			{
-      				context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
-      			} else{
- 
-      				if (flashVal%2==1&& flashVal>0)
-      				{
-      					context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);      					
-      					flashVal--;
-      				}
-      				
-      			}
+				      
+      			if (flashVal%2==1 || phase==phases.battle|| phase==phases.monsterDead)
+	  				context.drawImage(charImg[player[currentPlayer].character], battlePlayer.x-(battlePlayer.tmpw/2), battlePlayer.y-(battlePlayer.tmph/2), battlePlayer.tmpw,battlePlayer.tmph);
 
-      			if (monsters[battleMonster.id].hp>0)
-      			{
-      				context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
-      			}else{
-      				if (flashVal%2==1 && flashVal>0)
-      				{
-      					context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
-      					flashVal--;
-      				}
+  				if (flashVal%2==1 || phase==phases.battle|| phase==phases.playerDead)
+     				context.drawImage(monsterImg[mons.lvl], battleMonster.x-(battleMonster.tmpw/2), battleMonster.y-(battleMonster.tmph/2), battleMonster.tmpw,battleMonster.tmph);
+
       				
       		
-      			}
+      			
 				
 				context.fillStyle = 'black';
 				var atklvl =player[currentPlayer].atkLvl;
@@ -1066,10 +1125,10 @@
 				(currentAnimation.y - currentAnimation.tmpy> movStep) ? currentAnimation.tmpy+=movStep : currentAnimation.tmpy=currentAnimation.y;
 
 				if (animInfo[currentAnimation.type][currentAnimation.stage].x-animInfo[currentAnimation.type][currentAnimation.stage-1].x < 0)
-				(currentAnimation.tmpx - currentAnimation.x>movStep) ? currentAnimation.tmpx-=movStep :0;
+				(currentAnimation.tmpx - currentAnimation.x>movStep) ? currentAnimation.tmpx-=movStep : currentAnimation.tmpx=currentAnimation.x;
 
 				if (animInfo[currentAnimation.type][currentAnimation.stage].y-animInfo[currentAnimation.type][currentAnimation.stage-1].y < 0)
-				(currentAnimation.tmpy - currentAnimation.y>movStep) ? currentAnimation.tmpy-=movStep :0;
+				(currentAnimation.tmpy - currentAnimation.y>movStep) ? currentAnimation.tmpy-=movStep : currentAnimation.tmpy=currentAnimation.y;
 
 				if (animInfo[currentAnimation.type][currentAnimation.stage].w-animInfo[currentAnimation.type][currentAnimation.stage-1].w > 0)
 				(currentAnimation.w-currentAnimation.tmpw > movStep) ? currentAnimation.tmpw+=sizeStep :currentAnimation.tmpw=currentAnimation.w;;
@@ -1101,7 +1160,8 @@
 				}
 
 
-				console.log("Animating "+currentAnimation.tmpw+" "+currentAnimation.w+" -- "+currentAnimation.tmph+" "+currentAnimation.h +"  "+movStep);
+				//console.log("Animating "+currentAnimation.tmpw+" "+currentAnimation.w+" -- "+currentAnimation.tmph+" "+currentAnimation.h +"  -- - -   "+currentAnimation.tmpx+" "+currentAnimation.x+" -- "+currentAnimation.tmpy+" "+currentAnimation.y);
+				
 				context.drawImage(animImg[currentAnimation.type], currentAnimation.basex+ currentAnimation.tmpx-(currentAnimation.tmpw/2), currentAnimation.basey+ currentAnimation.tmpy-(currentAnimation.tmph/2), currentAnimation.tmpw,currentAnimation.tmph);
       		}
       	}
@@ -1142,6 +1202,8 @@
 
 	  	currentAnimation.stage=1;
 	  }
+
+
 	  function spawnMonster(lane, lvl, boss)
 	  {
 	  	/*monster[lane][lvl].alive=1;
@@ -1166,15 +1228,70 @@
 	  		atk:monsterInfo[lvl].atk, 
 	  		tmpw:0, 
 	  		tmph:0, 
-	  		toAdvance:monsterMoveTurns
+	  		toAdvance:monsterMoveTurns,
+	  		offsetx:offsetMax-getRandomInt(offsetMax*2),
+			offsety:offsetMax-getRandomInt(offsetMax*2)
 	  	});
 	  }
 
-
-	  function attackCastle(monsterLvl)
+	  function spawnPlayer(pl)
 	  {
-	  	var atk = monsterInfo[monsterLvl].atk;
+
+				player[pl] = {
+						lane:pl, 
+						box:0, 
+						x:board["center"].x, 
+						y:board["center"].y, 
+						tmpx:board["center"].x, 
+						tmpy:board["center"].y, 
+						vitLvl:0, 
+						hp:itemInfo["vit"][0].val, 
+						tmphp:itemInfo["vit"][0].val, 
+						atkLvl:0, 
+						defLvl:0, 
+						enrLvl:0, 
+						tmpgold: 0, 
+						gold:0, 
+						turnsToLive:0,
+						alive:true, 
+						character:pl, 
+						offsetx:offsetMax-getRandomInt(offsetMax*2),
+						offsety:offsetMax-getRandomInt(offsetMax*2)
+					};
+	  }
+
+	  function boxIsBusy(lane, box)
+	  {
+	  	var h=0;
+	  	for (p in player)
+	  	{
+	  		if (player[p].lane==lane && player[p].box==box)
+	  			h++;
+
+	  	}
+
+	  	for (m in monsters)
+	  	{
+	  		if (monsters[m].box==box && monsters[m].lane==lane)
+	  			h++;
+	  	}
+	  	if (h>1)
+	  		return true;
+	  	else
+	  		return false;
+
+	  }
+
+	  function attackCastle(pMonster)
+	  {
+	  	var atk = monsterInfo[pMonster.lvl].atk;
 	  	var dmg = Math.floor((Math.random() * atk) + 1);
+	  	pMonster.tmpx=boardX(pMonster.lane, 0);
+	  	pMonster.tmpy=boardY(pMonster.lane, 0);
+	  	dmgText.x=board["center"].x;
+		dmgText.y=board["center"].y;
+		dmgText.ttl=50;
+		dmgText.text="-"+dmg;
 	  	castleHP-=dmg;
 	  }
 
@@ -1317,15 +1434,22 @@
 
 				var finalDmg=p2-monsters[p1].def;
 				if (finalDmg<0) finalDmg=0;
-				monsters[p1].hp-=finalDmg;
+					monsters[p1].hp-=finalDmg;
 				dmgText.x=battleMonster.x-24;
 				dmgText.y=battleMonster.y-battleMonster.h;
 				dmgText.ttl=50;
 				dmgText.text="-"+finalDmg;
+
+				if (monsters[p1].hp<0) finalDmg+=monsters[p1].hp;
+
+				//console.log("Adding "+finalDmg+" damage for monster "+p1+" to player "+currentPlayer);
+				damageInfo.push({monster:p1, player:currentPlayer, damage: finalDmg});
+
+				
 				if (monsters[p1].hp<=0)
 				{
 					monsters[p1].alive=false;
-					player[currentPlayer].gold+= 5 + (monsters[p1].lvl *2);
+					distributeGold(p1);
 				}
 				energy-=2;
 				console.log("Attacking monster "+p1 +" Hp remaining: "+monsters[p1].hp+"  Alive: "+monsters[p1].alive);
@@ -1335,12 +1459,16 @@
 			{
 				var r = confirm("Hit player?");
 				if (r == true) {
-				    
+					startAnimation("hit", battlePlayer.x, battlePlayer.y);
 				
 				var mons = monsters[battleMonster.id];
 				var finalDmg=(Math.floor((Math.random() * mons.atk) + 1))- itemInfo["def"][player[currentPlayer].defLvl].val;
 				if (finalDmg<0) finalDmg=0;
-				player[currentPlayer].hp-= finalDmg;
+					player[currentPlayer].hp-= finalDmg;
+
+				if (player[currentPlayer].hp<0)
+					player[currentPlayer].hp=0;
+
 				dmgText.x=battlePlayer.x-24;
 				dmgText.y=battlePlayer.y-battlePlayer.h;
 				dmgText.ttl=50;
@@ -1410,13 +1538,48 @@
 				currentPlayer++;
 				if (currentPlayer>=players)
 					currentPlayer=0;
-				switchPhase(phases.playerEnergy);
+				switchPhase(phases.monsterAdvance);
 		}
 
 		function getRandomInt(max)
 		{
 			return Math.floor((Math.random() * max) + 1);
 		} 
+
+		function distributeGold(monsterid)
+		{
+			var maxhp=monsterInfo[monsters[monsterid].lvl].vit;
+			var gold = 5-0+(monsters[monsterid].lvl*2);
+			var playerdmg=[];
+			var totalGold=0;
+			for (p in player)
+				playerdmg[p]=0;
+
+			for (d in damageInfo)
+			{
+				if (damageInfo[d].monster==monsterid)
+				{
+					playerdmg[damageInfo[d].player]+=damageInfo[d].damage;
+				}
+			}
+
+			for (p in player)
+			{
+				if (playerdmg[p]==0) continue;
+
+				var playergold =Math.round(gold * (playerdmg[p]/maxhp));
+				console.log(playergold+" for player "+p+" ("+playerdmg[p]+" dmg)");
+				player[p].gold+=playergold;
+				totalGold+=playergold;
+			}
+			
+			if (totalGold<gold)
+			{
+				var goldLeft = gold-totalGold;
+				console.log(goldLeft+" for player "+p+" -difference");
+				player[currentPlayer].gold+=goldLeft;
+			}
+		}
 
 		function click(x, y)
 		{
@@ -1439,16 +1602,10 @@
 	   var n=0;
 		canvas.addEventListener('mousedown', function(evt) {
 		var rect = canvas.getBoundingClientRect();
-		console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
+		//console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
 		n++;
 
 		click(Math.round(evt.clientX - rect.left), Math.round(evt.clientY-rect.top));
-
-		for (m in monsters)
-		{
-			console.log("Moving monster, hp"+monsters[m].hp);
-			//if (monsters[m].box!=13)monsters[m].box--;
-		}
       }, false);
       
     </script>
