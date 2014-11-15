@@ -23,7 +23,7 @@
    
 
     </div>
-
+<script src="init.js"></script>
    <script src="jquery211.js"></script>
     <script>
 
@@ -53,7 +53,8 @@
 		var energy=0;
 		var itemInfo=[];
 		var damageInfo=[];
-
+		var snd = [];
+		
 
 
 		var input=false;
@@ -74,6 +75,12 @@
 		var animInfo = [];
 		var dmgText ={ttl:0,x:0,y:0, text:""};
 		var flashVal=30;
+
+
+		var soundList = [
+			"sword"
+		];
+
 		animInfo["sword"] = [];
 
 		animInfo["sword"][0]={x:-100, y:-100, w:0,h:0, sizeStep:48, movStep:16};
@@ -101,7 +108,9 @@
 			playerDead:"playerDead",
 			monsterDead:"monsterDead",
 			playerAtk:"playerAtk",
-			enemyAtk:"enemyAtk"
+			enemyAtk:"enemyAtk",
+			playerVictory:"playerVictory",
+			monsterVictory:"monsterVictory"
 		}
 
 		
@@ -299,7 +308,14 @@
 			context.imageSmoothingEnabled = true;
 			var buttons=[];
 
-			
+		
+		function loadSounds () {
+			for (s in soundList)
+			{
+				var sname=soundList[s];
+				snd[sname] = new Audio("sound/"+sname+".wav");
+			}
+		}
 		function loadImages(sources) {
         for(var src in sources) {
           images[src] = new Image();
@@ -395,6 +411,7 @@
       };
 
       loadImages(sources);
+      loadSounds(sources);
 	  setInterval(function(){render()}, 30);
 	  setInterval(function(){processAction()}, 100);
 	  setInterval(function(){addTemps()}, 100);
@@ -502,6 +519,9 @@
 
 	  	}
 
+	  	if (toPhase==phases.playerVictory)
+	  		phase=toPhase;
+
 
 	  	console.log("Phase is: "+phase);
 	  }
@@ -539,7 +559,7 @@
 	  		return;
 	  	}
 
- 	
+ 		
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
 	  	{
@@ -586,6 +606,10 @@
 
 	  		
 	  		switchPhase(phases.playerEnergy);
+	  		if (checkPlayerVictory())
+ 			{
+ 				switchPhase(phases.playerVictory);
+ 			}
 	  	}
 
 		//================  PHASE MONSTER ADVANCE ======================
@@ -641,7 +665,7 @@
 				return;
 			}
 			context.drawImage(faceImg[player[currentPlayer].character], board["center"].x-64, board["center"].y-64, 128, 128);
-			energy=prompt("Energia del jugador "+currentPlayer+1);//$("#param1").val();
+			energy=prompt("Turno de "+player[currentPlayer].name);//$("#param1").val();
 			switchPhase(phases.playerActions);
 		}
 
@@ -1236,8 +1260,9 @@
 
 	  function spawnPlayer(pl)
 	  {
-
+	  	console.log("Spawning player "+playerInfo[pl].name);
 				player[pl] = {
+						name:playerInfo[pl].name,
 						lane:pl, 
 						box:0, 
 						x:board["center"].x, 
@@ -1254,7 +1279,7 @@
 						gold:0, 
 						turnsToLive:0,
 						alive:true, 
-						character:pl, 
+						character:playerInfo[pl].character, 
 						offsetx:offsetMax-getRandomInt(offsetMax*2),
 						offsety:offsetMax-getRandomInt(offsetMax*2)
 					};
@@ -1431,7 +1456,7 @@
 				startAnimation("sword", battleMonster.x, battleMonster.y);
 
 
-
+				snd["sword"].play();
 				var finalDmg=p2-monsters[p1].def;
 				if (finalDmg<0) finalDmg=0;
 					monsters[p1].hp-=finalDmg;
@@ -1549,7 +1574,7 @@
 		function distributeGold(monsterid)
 		{
 			var maxhp=monsterInfo[monsters[monsterid].lvl].vit;
-			var gold = 5-0+(monsters[monsterid].lvl*2);
+			var gold = 7-0+(monsters[monsterid].lvl*2);
 			var playerdmg=[];
 			var totalGold=0;
 			for (p in player)
@@ -1567,7 +1592,7 @@
 			{
 				if (playerdmg[p]==0) continue;
 
-				var playergold =Math.round(gold * (playerdmg[p]/maxhp));
+				var playergold =Math.floor(gold * (playerdmg[p]/maxhp));
 				console.log(playergold+" for player "+p+" ("+playerdmg[p]+" dmg)");
 				player[p].gold+=playergold;
 				totalGold+=playergold;
@@ -1594,6 +1619,25 @@
 
 		}
 	  
+	  function checkPlayerVictory()
+	  {
+	  		var count = 0 ;
+	  	for (m in monsters)
+	  	{
+	  	
+	  		var mon = monsters[m];
+	  		if (mon.alive && mon.lvl==25)
+	  		{
+	  		//	console.log(mon.lvl);
+	  			count++;
+	  		}
+	  	}
+	  //	console.log("Enemy bosses:"+count);
+	  	if (count==0)
+	  		return true;
+	  	else
+	  		return false;
+	  }
 
 		//================  EVENTS  ======================
 

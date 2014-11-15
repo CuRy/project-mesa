@@ -1,5 +1,4 @@
 -Sideway managment
--Player selection
 -Win/Lose condition
 -Sound FX
 -Fix char width/height
