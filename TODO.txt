@@ -1,6 +1,2 @@
--Sideway managment
--Win/Lose condition
 -Sound FX
--Fix char width/height
-
 -Map redo

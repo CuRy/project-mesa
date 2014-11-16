@@ -38,8 +38,8 @@
 		//var monsters=1;
 		var turn=0;
 		var player=[];
-		var charHeight=56;
-		var charWidth=28;
+		var charHeight=64;
+		var charWidth=64;
 		var movSteps=2; //For movement animation
 		var sizeSteps=2;	//For scale animation
 		var laneLvl =[];
@@ -54,6 +54,8 @@
 		var itemInfo=[];
 		var damageInfo=[];
 		var snd = [];
+		var maxSideSteps=5;
+		var sideLaneSize=5;
 		
 
 
@@ -71,6 +73,8 @@
 		var atributeVoffset=70;
 		var monsterBattleIcon={h:48, w:48};
 		var offsetMax=25;
+		var defeatImg = {w:640, h:320, tmpw:0, tmph:0};
+		var victoryImgInfo = {w:1580, h:640, tmpw:0, tmph:0};
 
 		var animInfo = [];
 		var dmgText ={ttl:0,x:0,y:0, text:""};
@@ -78,7 +82,19 @@
 
 
 		var soundList = [
-			"sword"
+			"sword",
+			"defense",
+			"equip",
+			"exit_battle",
+			"monster_attack", 
+			"monster_dead",
+			"monster_spawn", 
+			"move", 
+			"potion", 
+			"battle", 
+			"player_dead", 
+			"victory"
+
 		];
 
 		animInfo["sword"] = [];
@@ -239,11 +255,51 @@
 		board["7.10"] = {x:307, y:222};
 		board["7.11"] = {x:225, y:206};
 		board["7.12"] = {x:163, y:222};
-
 		
+		board["s0.1"] = {x:535, y:75} ;
+		board["s0.2"] = {x:665, y:61} ;
+		board["s0.3"] = {x:795, y:63} ;
+		board["s0.4"] = {x:925, y:124} ;
+		board["s0.5"] = {x:1043, y:171} ;
+		board["s1.1"] = {x:1285, y:203} ;
+		board["s1.2"] = {x:1237, y:280} ;
+		board["s1.3"] = {x:1135, y:327} ;
+		board["s1.4"] = {x:1203, y:343} ;
+		board["s1.5"] = {x:1268, y:342} ;
+		board["s2.1"] = {x:1434, y:358} ;
+		board["s2.2"] = {x:1481, y:424} ;
+		board["s2.3"] = {x:1491, y:502} ;
+		board["s2.4"] = {x:1481, y:593} ;
+		board["s2.5"] = {x:1395, y:642} ;
+		board["s3.1"] = {x:1284, y:734} ;
+		board["s3.2"] = {x:1215, y:690} ;
+		board["s3.3"] = {x:1151, y:687} ;
+		board["s3.4"] = {x:1170, y:722} ;
+		board["s3.5"] = {x:1232, y:749} ;
+		board["s4.1"] = {x:1102, y:860} ;
+		board["s4.2"] = {x:1009, y:917} ;
+		board["s4.3"] = {x:891, y:967} ;
+		board["s4.4"] = {x:745, y:975} ;
+		board["s4.5"] = {x:599, y:959} ;
+		board["s5.1"] = {x:583, y:752} ;
+		board["s5.2"] = {x:521, y:737} ;
+		board["s5.3"] = {x:454, y:753} ;
+		board["s5.4"] = {x:405, y:707} ;
+		board["s5.5"] = {x:326, y:707} ;
+		board["s6.1"] = {x:293, y:564} ;
+		board["s6.2"] = {x:259, y:500} ;
+		board["s6.3"] = {x:192, y:434} ;
+		board["s6.4"] = {x:226, y:344} ;
+		board["s6.5"] = {x:310, y:286} ;
+		board["s7.1"] = {x:442, y:298} ;
+		board["s7.2"] = {x:487, y:304} ;
+		board["s7.3"] = {x:524, y:270} ;
+		board["s7.4"] = {x:501, y:225} ;
+		board["s7.5"] = {x:474, y:194} ;
 		
 		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:57,h:48};
 		monsterInfo[1]={lvl:2, vit:6, atk:4, def:0,w:40,h:70};
+		monsterInfo[2]={lvl:3, vit:8, atk:4, def:0,w:45,h:65};
 		monsterInfo[25]={lvl:26, vit:50, atk:12, def:3,w:135,h:101};
 		
 		var atkMax=5;
@@ -313,7 +369,7 @@
 			for (s in soundList)
 			{
 				var sname=soundList[s];
-				snd[sname] = new Audio("sound/"+sname+".wav");
+				snd[sname] = new Audio("sound/"+sname+".ogg");
 			}
 		}
 		function loadImages(sources) {
@@ -341,6 +397,10 @@
           cancelImg = new Image();
           energyImg = new Image();
           endImg = new Image();
+          gameOverImg =  new Image();
+          victoryImg =  new Image();
+          victoryImg.src =  "victory_logo.gif";
+          gameOverImg.src =  "game_over.jpg";
           monsterAtkImg.src = "items/atkIcon.png";
           monsterDefImg.src = "items/defIcon.png";
           monsterHpImg.src = "items/hpIcon.png";
@@ -447,13 +507,11 @@
 	  		phaseValue[0]=0;
 	  		phaseValue[0]=0;
 
-	  		phase=phases.intro;
 	  	}
 
 	  	if (toPhase==phases.summon)
 	  	{
 	  		summonTurnsLeft--;
-	  		phase=phases.summon;
 	  	}
 
 		if (toPhase==phases.monsterAdvance)
@@ -473,26 +531,19 @@
 
 	  		}
 
-	  		phase=phases.monsterAdvance;
 	  	}
 
-	  	 if (toPhase==phases.playerEnergy)
-	  	{
-
-	  		phase=phases.playerEnergy;
-	  	}
 
 	  	if (toPhase==phases.playerActions)
 	  	{
 	  		input=false;
-	  		phase=phases.playerActions;
 	  		
 	  	}
 
 	  	if (toPhase==phases.battle)
 	  	{
 	  		input=false;
-	  		
+	  		snd["battle"].play();
 	  		battlePlayer.w=charWidth*2;
 	  		battlePlayer.h=charHeight*2;
 	  		
@@ -507,20 +558,21 @@
 	  		battleMonster.tmph=0;
 
 	  		flashVal=30;
-	  		phase=phases.battle;
 	  		
 	  	}
 
 	  	if (toPhase==phases.playerDead || toPhase==phases.monsterDead)
 	  	{
+	  		if (toPhase==phases.playerDead)
+	  			snd["player_dead"].play();
+
+	  		if (toPhase==phases.monsterDead)
+	  			snd["monster_dead"].play();
+
 	  		flashVal=15;
-
-	  		phase=toPhase;
-
 	  	}
 
-	  	if (toPhase==phases.playerVictory)
-	  		phase=toPhase;
+  		phase=toPhase;
 
 
 	  	console.log("Phase is: "+phase);
@@ -559,7 +611,10 @@
 	  		return;
 	  	}
 
- 		
+ 		if (checkMonsterVictory())
+ 		{
+			switchPhase(phases.monsterVictory);
+ 		}
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
 	  	{
@@ -568,6 +623,7 @@
 	  			if (phaseValue[0]<phaseComplete[0])
 	  			{
 	  				spawnMonster(phaseValue[0], 25, true);
+	  				snd["monster_spawn"].play();
 	  				phaseValue[0]++
 	  			}
 	  			else
@@ -599,6 +655,7 @@
 	  		if (summonTurnsLeft<=0)
 	  		{
 	  			spawnMonster(spawnLane, laneLvl[spawnLane]);
+	  			snd["monster_spawn"].play();
 	  			laneLvl[spawnLane]++;
 	  			summonTurnsLeft=summonTurns;
 	  		}
@@ -606,10 +663,7 @@
 
 	  		
 	  		switchPhase(phases.playerEnergy);
-	  		if (checkPlayerVictory())
- 			{
- 				switchPhase(phases.playerVictory);
- 			}
+	  		
 	  	}
 
 		//================  PHASE MONSTER ADVANCE ======================
@@ -629,12 +683,14 @@
 		  				if (monsters[m].box>1)
 		  				{
 		  					monsters[m].box--;
+		  					snd["move"].play();
 		  					wait(5);
 		  					return;
 		  				}
 		  				else
 		  				{
 		  					attackCastle(monsters[m]);
+		  					snd["monster_attack"].play();
 		  					wait(10);
 		  					return;
 		  				}
@@ -667,17 +723,16 @@
 			context.drawImage(faceImg[player[currentPlayer].character], board["center"].x-64, board["center"].y-64, 128, 128);
 			energy=prompt("Turno de "+player[currentPlayer].name);//$("#param1").val();
 			switchPhase(phases.playerActions);
+			
 		}
 
 		//================  PHASE PLAYER ACTIONS ======================
-		if (phase==phases.playerActions && input==true)
+		if (phase==phases.playerActions)
 		{
-			aCode=$("#code").val();
-			aP1=$("#param1").val();
-			aP2=$("#param2").val();
-			//executeAction(aCode, aP1, aP2);
-			//getPossibleActions();
-			input=false;
+			if (checkPlayerVictory())
+ 			{
+ 				switchPhase(phases.playerVictory);
+ 			}
 		}
 
 		if (phase==phases.playerDead)
@@ -994,7 +1049,7 @@
 				var txt;
 				if (button.action=="mov")
 				{
-					txt = "Lane "+(button.p1-0+1) + " box "+button.p2;
+					txt = "Lane "+button.p1+ " box "+button.p2;
 					context.drawImage(movImg, button.x, button.y, button.w, button.h);
 					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
 				}
@@ -1028,6 +1083,30 @@
 
 				
 			}
+
+			wset=false;
+      		hset=false;
+			if (phase==phases.monsterVictory)
+      		{
+      			(defeatImg.tmpw<defeatImg.w) ? defeatImg.tmpw+=sizeSteps * 15:wset=true;
+      			(defeatImg.tmph<defeatImg.h) ? defeatImg.tmph+=sizeSteps * 15:hset=true;
+				//console.log(defeatImg.tmpw+"  "+defeatImg.w);
+      			//console.log(defeatImg.tmph+"  "+defeatImg.h);
+
+				context.drawImage(gameOverImg, (boardW/2)-(defeatImg.tmpw/2), (boardH/2)-(defeatImg.tmph/2), defeatImg.tmpw,defeatImg.tmph);
+      			
+      		}
+
+      		if (phase==phases.playerVictory)
+      		{
+      			(victoryImgInfo.tmpw<defeatImg.w) ? victoryImgInfo.tmpw+=sizeSteps * 15:wset=true;
+      			(victoryImgInfo.tmph<defeatImg.h) ? victoryImgInfo.tmph+=sizeSteps * 15:hset=true;
+				//console.log(victoryImgInfo.tmpw+"  "+victoryImgInfo.w);
+      			//console.log(victoryImgInfo.tmph+"  "+victoryImgInfo.h);
+
+				context.drawImage(victoryImg, (boardW/2)-(victoryImgInfo.tmpw/2), (boardH/2)-(victoryImgInfo.tmph/2), victoryImgInfo.tmpw,victoryImgInfo.tmph);
+      			
+      		}
       		
       	}
 
@@ -1336,17 +1415,67 @@
 
 
 	  	//move
-	  	if (currentBox>0)
+	  //	console.log("side lane: "+inSideLane());
+	  	if ((currentBox>0 && !inSideLane()) || (currentBox>1 && inSideLane()) )
 	  		actionList.push({code:"mov", param1:currentLane, param2:currentBox-1});
 
-	  	if (currentBox<laneSize)
+	  	if ((currentBox<laneSize && !inSideLane()) || (currentBox<sideLaneSize && inSideLane()))
 	  		actionList.push({code:"mov", param1:currentLane, param2:(currentBox-0+1)});
 
-	  	if (currentBox==0)
+		if (currentBox==8)
+		{
+			switch (currentLane)
+	  		{
+	  			case 0:actionList.push({code:"mov", param1:"s0", param2:1});actionList.push({code:"mov", param1:"s7", param2:sideLaneSize});break;
+	  			case 1:actionList.push({code:"mov", param1:"s1", param2:1});actionList.push({code:"mov", param1:"s0", param2:sideLaneSize});break;
+	  			case 2:actionList.push({code:"mov", param1:"s2", param2:1});actionList.push({code:"mov", param1:"s1", param2:sideLaneSize});break;
+	  			case 3:actionList.push({code:"mov", param1:"s3", param2:1});actionList.push({code:"mov", param1:"s2", param2:sideLaneSize});break;
+	  			case 4:actionList.push({code:"mov", param1:"s4", param2:1});actionList.push({code:"mov", param1:"s3", param2:sideLaneSize});break;
+	  			case 5:actionList.push({code:"mov", param1:"s5", param2:1});actionList.push({code:"mov", param1:"s4", param2:sideLaneSize});break;
+	  			case 6:actionList.push({code:"mov", param1:"s6", param2:1});actionList.push({code:"mov", param1:"s5", param2:sideLaneSize});break;
+	  			case 7:actionList.push({code:"mov", param1:"s7", param2:1});actionList.push({code:"mov", param1:"s6", param2:sideLaneSize});break;
+	
+	  		}
+	  	}
+
+	  	if (currentBox==0 && !inSideLane())
 	  	{
 	  		for (var l=0;l<lanes;l++)
 	  			if (l!=player[currentPlayer].lane)
 	  			actionList.push({code:"mov", param1:l, param2:1});
+	  	}
+
+	  	if (currentBox==1 && inSideLane())
+	  	{
+	  		var p_lane = player[currentPlayer].lane;
+	  		switch (p_lane)
+	  		{
+	  			case "s0":actionList.push({code:"mov", param1:0, param2:8});break;
+	  			case "s1":actionList.push({code:"mov", param1:1, param2:8});break;
+	  			case "s2":actionList.push({code:"mov", param1:2, param2:8});break;
+	  			case "s3":actionList.push({code:"mov", param1:3, param2:8});break;
+	  			case "s4":actionList.push({code:"mov", param1:4, param2:8});break;
+	  			case "s5":actionList.push({code:"mov", param1:5, param2:8});break;
+	  			case "s6":actionList.push({code:"mov", param1:6, param2:8});break;
+	  			case "s7":actionList.push({code:"mov", param1:7, param2:8});break;
+	  		}
+
+	  	}
+
+	  	if (currentBox==sideLaneSize && inSideLane())
+	  	{
+	  		var p_lane = player[currentPlayer].lane;
+	  		switch (p_lane)
+	  		{
+	  			case "s0":actionList.push({code:"mov", param1:1, param2:8});break;
+	  			case "s1":actionList.push({code:"mov", param1:2, param2:8});break;
+	  			case "s2":actionList.push({code:"mov", param1:3, param2:8});break;
+	  			case "s3":actionList.push({code:"mov", param1:4, param2:8});break;
+	  			case "s4":actionList.push({code:"mov", param1:5, param2:8});break;
+	  			case "s5":actionList.push({code:"mov", param1:6, param2:8});break;
+	  			case "s6":actionList.push({code:"mov", param1:7, param2:8});break;
+	  			case "s7":actionList.push({code:"mov", param1:0, param2:8});break;
+	  		}
 	  	}
 	  	
 	  	//battle
@@ -1435,7 +1564,7 @@
 			{
 				player[currentPlayer].lane=p1;
 				player[currentPlayer].box=p2;
-
+				snd["move"].play();
 				energy--;
 			}
 
@@ -1456,7 +1585,7 @@
 				startAnimation("sword", battleMonster.x, battleMonster.y);
 
 
-				snd["sword"].play();
+			
 				var finalDmg=p2-monsters[p1].def;
 				if (finalDmg<0) finalDmg=0;
 					monsters[p1].hp-=finalDmg;
@@ -1464,6 +1593,9 @@
 				dmgText.y=battleMonster.y-battleMonster.h;
 				dmgText.ttl=50;
 				dmgText.text="-"+finalDmg;
+
+				if (finalDmg==0) snd["defense"].play();
+				else snd["sword"].play();
 
 				if (monsters[p1].hp<0) finalDmg+=monsters[p1].hp;
 
@@ -1494,6 +1626,10 @@
 				if (player[currentPlayer].hp<0)
 					player[currentPlayer].hp=0;
 
+
+				if (finalDmg==0) snd["defense"].play();
+				else snd["monster_attack"].play();
+
 				dmgText.x=battlePlayer.x-24;
 				dmgText.y=battlePlayer.y-battlePlayer.h;
 				dmgText.ttl=50;
@@ -1513,25 +1649,28 @@
 					player[currentPlayer].gold-=itemInfo["vit"][player[currentPlayer].vitLvl+1].cost;
 					player[currentPlayer].vitLvl++;
 					player[currentPlayer].hp=Math.round(itemInfo["vit"][player[currentPlayer].vitLvl].val*hppercentage);
+					snd["equip"].play();
 
 				}
 				if (p1=="def" && player[currentPlayer].gold >= itemInfo["def"][player[currentPlayer].defLvl+1].cost)
 				{
 					player[currentPlayer].gold-=itemInfo["def"][player[currentPlayer].defLvl+1].cost;
 					player[currentPlayer].defLvl++;
+					snd["equip"].play();
 
 				}
 				if (p1=="atk" && player[currentPlayer].gold >= itemInfo["atk"][player[currentPlayer].atkLvl+1].cost)
 				{
 					player[currentPlayer].gold-=itemInfo["atk"][player[currentPlayer].atkLvl+1].cost;
 					player[currentPlayer].atkLvl++;
+					snd["equip"].play();
 
 				}
 				if (p1=="enr" && player[currentPlayer].gold >= itemInfo["enr"][player[currentPlayer].enrLvl+1].cost)
 				{
 					player[currentPlayer].gold-=itemInfo["enr"][player[currentPlayer].enrLvl+1].cost;
 					player[currentPlayer].enrLvl++;
-
+					snd["equip"].play();
 				}
 
 				if (p1=="pot" && player[currentPlayer].gold >= itemInfo["pot"][0].cost)
@@ -1542,6 +1681,7 @@
 					{
 						player[currentPlayer].hp=itemInfo["vit"][player[currentPlayer].vitLvl].val;
 					}
+					snd["potion"].play();
 
 				}
 				energy--;
@@ -1550,6 +1690,7 @@
 
 			if (code=="cancel")
 			{
+				snd["exit_battle"].play();
 				switchPhase(phases.playerActions);
 			}
 
@@ -1571,6 +1712,15 @@
 			return Math.floor((Math.random() * max) + 1);
 		} 
 
+		function inSideLane()
+		{
+			for (l=0;l<lanes;l++)
+				if (player[currentPlayer].lane=="s"+l)
+					return true;
+
+			return false;
+
+		}
 		function distributeGold(monsterid)
 		{
 			var maxhp=monsterInfo[monsters[monsterid].lvl].vit;
@@ -1612,7 +1762,7 @@
 			{
 				if (x>buttons[b].x && x<buttons[b].x+buttons[b].w && y>buttons[b].y && y<buttons[b].y+buttons[b].h )
 				{
-					console.log("Clicked "+buttons[b].action+" "+buttons[b].p1+" "+buttons[b].p2);
+					//console.log("Clicked "+buttons[b].action+" "+buttons[b].p1+" "+buttons[b].p2);
 					executeAction(buttons[b].action, buttons[b].p1, buttons[b].p2);
 				}
 			}
@@ -1639,16 +1789,31 @@
 	  		return false;
 	  }
 
+	  function checkMonsterVictory()
+	  {
+	  		if (tmpCastleHP<=0)
+	  		{
+	  			return true;
+	  		}
+
+	  		return false;
+	  }
+
+
 		//================  EVENTS  ======================
 
 		//spawnMonster(0, 0);
-	   var row=7;
-	   var n=0;
+	   var row=0;
+	   var n=1;
 		canvas.addEventListener('mousedown', function(evt) {
 		var rect = canvas.getBoundingClientRect();
-		//console.log("board[\""+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
+		console.log("board[\"s"+row+"."+n+"\"] = {x:" + Math.round(evt.clientX - rect.left)+ ", y:"+Math.round(evt.clientY-rect.top)+"}");
 		n++;
-
+		if (n>sideLaneSize)
+		{
+			n=1;
+			row++;
+		}
 		click(Math.round(evt.clientX - rect.left), Math.round(evt.clientY-rect.top));
       }, false);
       
