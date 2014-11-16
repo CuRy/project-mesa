@@ -1,0 +1,27 @@
+
+	playerInfo=[
+		{
+			name:"A",
+			character:0
+		},
+		{
+			name:"B",
+			character:1
+		},
+		{
+			name:"C",
+			character:2
+		},
+		{
+			name:"D",
+			character:3
+		},
+		{
+			name:"E",
+			character:4
+		},
+		{
+			name:"F",
+			character:5
+		},
+	];

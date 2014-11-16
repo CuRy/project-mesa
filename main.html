@@ -30,7 +30,7 @@
 
     	//================  INIT  ======================
 		
-		var players = 6;
+		var players = 2;
 		var castleHP=50;
 		var tmpCastleHP=castleHP;
 		var lanes = 8;
@@ -93,7 +93,9 @@
 			"potion", 
 			"battle", 
 			"player_dead", 
-			"victory"
+			"victory",
+			"defeat",
+			"player_spawn"
 
 		];
 
@@ -335,30 +337,30 @@
 		itemInfo["pot"] = [];
 
 		itemInfo["atk"][0]={cost:0, val:4, w:56, h:84};
-		itemInfo["atk"][1]={cost:40, val:6, w:56, h:84};
-		itemInfo["atk"][2]={cost:60, val:8, w:56, h:84};
-		itemInfo["atk"][3]={cost:100, val:10, w:56, h:84};
-		itemInfo["atk"][4]={cost:160, val:12, w:56, h:84};
+		itemInfo["atk"][1]={cost:24, val:6, w:56, h:84};
+		itemInfo["atk"][2]={cost:36, val:8, w:56, h:84};
+		itemInfo["atk"][3]={cost:60, val:10, w:56, h:84};
+		itemInfo["atk"][4]={cost:96, val:12, w:56, h:84};
 
 		itemInfo["vit"][0]={cost:0, val:25, w:56, h:56};
-		itemInfo["vit"][1]={cost:20, val:30, w:56, h:56};
-		itemInfo["vit"][2]={cost:30, val:35, w:56, h:56};
-		itemInfo["vit"][3]={cost:50, val:40, w:56, h:56};
-		itemInfo["vit"][4]={cost:80, val:45, w:56, h:56};
-		itemInfo["vit"][5]={cost:120, val:50, w:56, h:56};
+		itemInfo["vit"][1]={cost:12, val:30, w:56, h:56};
+		itemInfo["vit"][2]={cost:18, val:35, w:56, h:56};
+		itemInfo["vit"][3]={cost:30, val:40, w:56, h:56};
+		itemInfo["vit"][4]={cost:48, val:45, w:56, h:56};
+		itemInfo["vit"][5]={cost:72, val:50, w:56, h:56};
 
 		itemInfo["def"][0]={cost:0, val:0, w:56, h:84};
-		itemInfo["def"][1]={cost:30, val:1, w:56, h:84};
-		itemInfo["def"][2]={cost:50, val:2, w:56, h:84};
-		itemInfo["def"][3]={cost:90, val:3, w:56, h:84};
-		itemInfo["def"][4]={cost:150, val:4, w:56, h:84};
-		itemInfo["def"][5]={cost:230, val:5, w:56, h:84};
+		itemInfo["def"][1]={cost:18, val:1, w:56, h:84};
+		itemInfo["def"][2]={cost:30, val:2, w:56, h:84};
+		itemInfo["def"][3]={cost:54, val:3, w:56, h:84};
+		itemInfo["def"][4]={cost:90, val:4, w:56, h:84};
+		itemInfo["def"][5]={cost:138, val:5, w:56, h:84};
 
 		itemInfo["enr"][0]={cost:0, val:4, w:56, h:56};
-		itemInfo["enr"][1]={cost:15, val:6, w:56, h:56};
-		itemInfo["enr"][2]={cost:20, val:8, w:56, h:56};
-		itemInfo["enr"][3]={cost:30, val:10, w:56, h:56};
-		itemInfo["enr"][4]={cost:50, val:12, w:56, h:56};
+		itemInfo["enr"][1]={cost:9, val:6, w:56, h:56};
+		itemInfo["enr"][2]={cost:12, val:8, w:56, h:56};
+		itemInfo["enr"][3]={cost:18, val:10, w:56, h:56};
+		itemInfo["enr"][4]={cost:30, val:12, w:56, h:56};
 		
 		itemInfo["pot"][0]={cost:4, val:10, w:48, h:48};
 
@@ -593,6 +595,11 @@
 	  		flashVal=15;
 	  	}
 
+	  	if (toPhase==phases.monsterVictory)
+	  	{
+	  		snd["defeat"].play();
+	  	}
+
   		phase=toPhase;
 
 
@@ -657,12 +664,13 @@
 	  			if (phaseValue[1]<phaseComplete[1])
 	  			{
 					spawnPlayer(phaseValue[1]);
+					snd["player_spawn"].play();
 					phaseValue[1]++;
 	  			}
 	  			else
 	  			phaseControl++
 	  		}
-	  		wait(1);
+	  		wait(10);
 	  		if (phaseControl==2)
 	  			switchPhase(phases.monsterAdvance);
 	  	}
@@ -680,6 +688,7 @@
 	  			laneLvl[spawnLane]++;
 	  			summonTurnsLeft=summonTurns;
 	  			wait(15);
+	  			return;
 	  		}
 
 
@@ -738,6 +747,7 @@
 			if (player[currentPlayer].alive==false)
 			{
 				player[currentPlayer].alive=true;
+				snd["player_spawn"].play();
 				player[currentPlayer].hp=itemInfo["vit"][player[currentPlayer].vitLvl].val;
 				nextTurn();
 				wait(20);
@@ -780,6 +790,8 @@
 
 		if (phase==phases.battle)
 		{
+			
+
 			if (player[currentPlayer].hp<=0)
 			{
 				player[currentPlayer].x=board["center"].x;
@@ -792,6 +804,8 @@
 				player[currentPlayer].gold=Math.floor(player[currentPlayer].gold*0.8);
 				switchPhase(phases.playerDead);
 
+				
+
 			}
 			if (monsters[battleMonster.id].hp<=0)
 			{
@@ -800,6 +814,11 @@
 				//player[currentPlayer].gold=Math.floor(player[currentPlayer].gold*0.8);
 				switchPhase(phases.monsterDead);
 
+			}
+
+			if (energy<2)
+			{
+				switchPhase(phases.playerActions);
 			}
 		}
 
@@ -1189,8 +1208,8 @@
 				var atkIconY = (boardH/2)+0-(itemInfo["atk"][atklvl].h/2);
 				context.drawImage(itemImg["atk"][atklvl], atkIconX, atkIconY, itemInfo["atk"][atklvl].w,itemInfo["atk"][atklvl].h);
 
-				var vitIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["atk"][atklvl].w/2);
-				var vitIconY = (boardH/2)-atributeVoffset-(itemInfo["atk"][atklvl].h/2);
+				var vitIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["vit"][atklvl].w/2);
+				var vitIconY = (boardH/2)-atributeVoffset-(itemInfo["vit"][atklvl].h/2);
 				context.drawImage(itemImg["vit"][atklvl], vitIconX, vitIconY, itemInfo["vit"][vitlvl].w,itemInfo["vit"][vitlvl].h);
 
 				var defIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["def"][deflvl].w/2);
@@ -1506,11 +1525,12 @@
 	  	{
 	  		if (monsters[m].alive==true)
 	  		{
-	  			if (monsters[m].lane==currentLane && (Math.abs(monsters[m].box-currentBox) <=1)  )
+	  			if (monsters[m].lane==currentLane && (Math.abs(monsters[m].box-currentBox) <=1) && energy>1 )
 	  			{
 	  				actionList.push({code:"battle", param1:m, param2:0});
+	  				continue;
 	  			}
-	  			if ((monsters[m].box==0 || monsters[m].box==1) && currentBox==0) 
+	  			if ((monsters[m].box==0 || monsters[m].box==1) && currentBox==0 && energy>1) 
 	  			{
 	  				actionList.push({code:"battle", param1:m, param2:0});	
 	  			}
@@ -1633,6 +1653,13 @@
 				}
 				energy-=2;
 				console.log("Attacking monster "+p1 +" Hp remaining: "+monsters[p1].hp+"  Alive: "+monsters[p1].alive);
+
+				if (energy<2)
+				{
+					//switchPhase(phases.playerActions);
+					wait(15);
+
+				}
 			}
 
 			if (code=="dmg")
@@ -1659,6 +1686,13 @@
 				dmgText.text="-"+finalDmg;
 				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
 				energy-=2;
+
+				if (energy<2)
+				{
+					//switchPhase(phases.playerActions);
+					wait(15);
+
+				}
 				}
 			}
 
