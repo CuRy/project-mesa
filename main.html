@@ -30,7 +30,7 @@
 
     	//================  INIT  ======================
 		
-		var players = 2;
+		//var players = 2;
 		var castleHP=50;
 		var tmpCastleHP=castleHP;
 		var lanes = 8;
@@ -47,10 +47,10 @@
 		var monster=[];
 		var monsters=[];
 		var laneSize=12;
-		var summonTurns=3;
+		var summonTurns=4;
 		var summonTurnsLeft=0;
-		var monsterMoveTurns=2;
-		var energy=0;
+		var monsterMoveTurns=3;
+
 		var itemInfo=[];
 		var damageInfo=[];
 		var snd = [];
@@ -526,7 +526,7 @@
 	  	{
 	  		phaseControl=0;
 	  		phaseComplete[0]=lanes;
-	  		phaseComplete[1]=players;
+	  		phaseComplete[1]=playerInfo.length;
 	  		phaseValue[0]=0;
 	  		phaseValue[0]=0;
 
@@ -548,7 +548,7 @@
 	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
 	  			{
 	  				monsters[m].toAdvance--;
-	  				if (monsters[m].toAdvance==0)
+	  				if (monsters[m].toAdvance<=0)
 	  					phaseComplete[0]++;
 	  			}
 
@@ -643,6 +643,7 @@
  		{
 			switchPhase(phases.monsterVictory);
  		}
+ 		console.log("phase is "+phase);
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
 	  	{
@@ -700,13 +701,14 @@
 		//================  PHASE MONSTER ADVANCE ======================
 	  	if (phase==phases.monsterAdvance)
 	  	{
+
 	  		for (m in monsters)
 	  		{
 	  			
 	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
 	  			{
 	  				console.log("Move candidate: "+m+ " to advance: "+monsters[m].toAdvance);
-	  				if (monsters[m].toAdvance==0)
+	  				if (monsters[m].toAdvance<=0)
 	  				{
 	  					monsters[m].toAdvance=monsterMoveTurns;
 		  				phaseValue[0]++;
@@ -736,6 +738,7 @@
 
 
 	  		}
+
 	  		if (phaseValue[0]==phaseComplete[0])
 	  		switchPhase(phases.summon);
 
@@ -744,7 +747,7 @@
 		//================  PHASE PLAYER ENERGY ======================
 		if (phase==phases.playerEnergy)
 		{
-			if (player[currentPlayer].alive==false)
+			if (player[currentPlayer].alive==false) 
 			{
 				player[currentPlayer].alive=true;
 				snd["player_spawn"].play();
@@ -754,7 +757,7 @@
 				return;
 			}
 			context.drawImage(faceImg[player[currentPlayer].character], board["center"].x-64, board["center"].y-64, 128, 128);
-			energy=prompt("Turno de "+player[currentPlayer].name);//$("#param1").val();
+			player[currentPlayer].energy+=prompt("Turno de "+player[currentPlayer].name)-0;//$("#param1").val();
 			switchPhase(phases.playerActions);
 			
 		}
@@ -816,7 +819,7 @@
 
 			}
 
-			if (energy<2)
+			if (player[currentPlayer].energy<2)
 			{
 				switchPhase(phases.playerActions);
 			}
@@ -849,7 +852,7 @@
 			
 			
 			//console.log(boardpos);
-			for (var i=0;i<players;i++)
+			for (var i=0;i<player.length;i++)
 			{
 				if (typeof player[i] !== 'undefined' && player[i].alive==true)
 				{
@@ -1078,7 +1081,7 @@
       		context.font="bold 48px Arial";
 			if (buttons.length>0)
 			{
-				txt = energy;
+				txt = player[currentPlayer].energy;
 				context.drawImage(faceImg[player[currentPlayer].character], boardW-48+infoBoxW*2, infoBoxH*3, 48,48);
 				context.fillText(txt, boardW-48-48+infoBoxW*2, infoBoxH*3+48);
 			}
@@ -1402,7 +1405,8 @@
 						alive:true, 
 						character:playerInfo[pl].character, 
 						offsetx:offsetMax-getRandomInt(offsetMax*2),
-						offsety:offsetMax-getRandomInt(offsetMax*2)
+						offsety:offsetMax-getRandomInt(offsetMax*2), 
+						energy:0
 					};
 	  }
 
@@ -1525,12 +1529,12 @@
 	  	{
 	  		if (monsters[m].alive==true)
 	  		{
-	  			if (monsters[m].lane==currentLane && (Math.abs(monsters[m].box-currentBox) <=1) && energy>1 )
+	  			if (monsters[m].lane==currentLane && (Math.abs(monsters[m].box-currentBox) <=1) && player[currentPlayer].energy>1 )
 	  			{
 	  				actionList.push({code:"battle", param1:m, param2:0});
 	  				continue;
 	  			}
-	  			if ((monsters[m].box==0 || monsters[m].box==1) && currentBox==0 && energy>1) 
+	  			if ((monsters[m].box==0 || monsters[m].box==1) && currentBox==0 && player[currentPlayer].energy>1) 
 	  			{
 	  				actionList.push({code:"battle", param1:m, param2:0});	
 	  			}
@@ -1608,7 +1612,7 @@
 				player[currentPlayer].lane=p1;
 				player[currentPlayer].box=p2;
 				snd["move"].play();
-				energy--;
+				player[currentPlayer].energy--;
 			}
 
 			if (code=="battle")
@@ -1619,7 +1623,9 @@
 			
 			if (code=="end")
 			{
-				energy=0;
+				//player[currentPlayer].energy=0;
+				nextTurn();
+				return;
 			}
 
 			if (code=="atk")
@@ -1651,10 +1657,10 @@
 					monsters[p1].alive=false;
 					distributeGold(p1);
 				}
-				energy-=2;
+				player[currentPlayer].energy-=2;
 				console.log("Attacking monster "+p1 +" Hp remaining: "+monsters[p1].hp+"  Alive: "+monsters[p1].alive);
 
-				if (energy<2)
+				if (player[currentPlayer].energy<2)
 				{
 					//switchPhase(phases.playerActions);
 					wait(15);
@@ -1685,9 +1691,9 @@
 				dmgText.ttl=50;
 				dmgText.text="-"+finalDmg;
 				console.log("Attacking player "+currentPlayer +" Damage: "+finalDmg+" Hp remaining: "+player[currentPlayer].hp);
-				energy-=2;
+				player[currentPlayer].energy-=2;
 
-				if (energy<2)
+				if (player[currentPlayer].energy<2)
 				{
 					//switchPhase(phases.playerActions);
 					wait(15);
@@ -1741,7 +1747,7 @@
 					snd["potion"].play();
 
 				}
-				energy--;
+				player[currentPlayer].energy--;
 
 			}
 
@@ -1751,7 +1757,7 @@
 				switchPhase(phases.playerActions);
 			}
 
-			if (energy<=0)
+			if (player[currentPlayer].energy<=0)
 			{
 				nextTurn();
 			}
@@ -1759,8 +1765,11 @@
 
 		function nextTurn(){
 				currentPlayer++;
-				if (currentPlayer>=players)
+				console.log("currentPlayer"+currentPlayer);
+
+				if (currentPlayer>=player.length)
 					currentPlayer=0;
+
 				switchPhase(phases.monsterAdvance);
 		}
 
