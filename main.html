@@ -297,7 +297,7 @@
 		board["s7.4"] = {x:501, y:225} ;
 		board["s7.5"] = {x:474, y:194} ;
 		
-		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:57,h:48};
+		monsterInfo[0]={lvl:1, vit:4, atk:4, def:0,w:31,h:23};
 		monsterInfo[1]={lvl:2, vit:6, atk:4, def:0,w:40,h:70};
 		monsterInfo[2]={lvl:3, vit:8, atk:4, def:0,w:45,h:65};
 		monsterInfo[3]={lvl:4, vit:10, atk:4, def:0,w:36,h:48};
@@ -679,6 +679,7 @@
 	  			snd["monster_spawn"].play();
 	  			laneLvl[spawnLane]++;
 	  			summonTurnsLeft=summonTurns;
+	  			wait(15);
 	  		}
 
 
@@ -695,6 +696,7 @@
 	  			
 	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
 	  			{
+	  				console.log("Move candidate: "+m+ " to advance: "+monsters[m].toAdvance);
 	  				if (monsters[m].toAdvance==0)
 	  				{
 	  					monsters[m].toAdvance=monsterMoveTurns;
