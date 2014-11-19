@@ -306,25 +306,25 @@
 		monsterInfo[3]={lvl:4, vit:7, atk:4, def:0,w:36,h:48};
 		monsterInfo[4]={lvl:5, vit:7, atk:6, def:0,w:32,h:40};
 		monsterInfo[5]={lvl:6, vit:7, atk:6, def:0,w:38,h:30};
-		monsterInfo[6]={lvl:7, vit:8, atk:6, def:1,w:32,h:60};
+		monsterInfo[6]={lvl:7, vit:8, atk:6, def:0,w:32,h:60};
 		monsterInfo[7]={lvl:8, vit:10, atk:6, def:1,w:34,h:52};
 		monsterInfo[8]={lvl:9, vit:11, atk:6, def:1,w:29,h:48};
 		monsterInfo[9]={lvl:10, vit:11, atk:8, def:1,w:68,h:48};
 		monsterInfo[10]={lvl:11, vit:11, atk:8, def:1,w:34,h:57};
 		monsterInfo[11]={lvl:12, vit:13, atk:8, def:1,w:26,h:38};
-		monsterInfo[12]={lvl:13, vit:14, atk:8, def:2,w:38,h:55};
-		monsterInfo[13]={lvl:14, vit:15, atk:8, def:2,w:44,h:47};
+		monsterInfo[12]={lvl:13, vit:14, atk:8, def:1,w:38,h:55};
+		monsterInfo[13]={lvl:14, vit:15, atk:8, def:1,w:44,h:47};
 		monsterInfo[14]={lvl:15, vit:15, atk:10, def:2,w:38,h:52};
 		monsterInfo[15]={lvl:16, vit:15, atk:10, def:2,w:50,h:58};
 		monsterInfo[16]={lvl:17, vit:17, atk:10, def:2,w:44,h:58};
 		monsterInfo[17]={lvl:18, vit:18, atk:10, def:2,w:36,h:40};
-		monsterInfo[18]={lvl:19, vit:20, atk:10, def:3,w:35,h:46};
-		monsterInfo[19]={lvl:20, vit:20, atk:12, def:3,w:36,h:54};
-		monsterInfo[20]={lvl:21, vit:20, atk:12, def:3,w:52,h:56};
+		monsterInfo[18]={lvl:19, vit:20, atk:10, def:2,w:35,h:46};
+		monsterInfo[19]={lvl:20, vit:20, atk:12, def:2,w:36,h:54};
+		monsterInfo[20]={lvl:21, vit:20, atk:12, def:2,w:52,h:56};
 		monsterInfo[21]={lvl:22, vit:21, atk:12, def:3,w:44,h:60};
 		monsterInfo[22]={lvl:23, vit:22, atk:12, def:3,w:88,h:84};
 		monsterInfo[23]={lvl:24, vit:24, atk:12, def:3,w:92,h:66};
-		monsterInfo[25]={lvl:26, vit:35, atk:12, def:4,w:109,h:75};
+		monsterInfo[25]={lvl:26, vit:35, atk:12, def:3,w:109,h:75};
 		
 		var atkMax=5;
 		var vitMax=6;
@@ -497,7 +497,7 @@
       loadImages(sources);
       loadSounds(sources);
 	  setInterval(function(){render()}, 30);
-	  setInterval(function(){processAction()}, 100);
+	  var pid= setInterval(function(){processAction()}, 100);
 	  setInterval(function(){addTemps()}, 100);
 	  
 
@@ -546,7 +546,7 @@
 	  		for (m in monsters)
 	  		{
 	  			
-	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
+	  			if (!monsters[m].boss && monsters[m].alive==true)
 	  			{
 	  				monsters[m].toAdvance--;
 	  				if (monsters[m].toAdvance<=0)
@@ -599,6 +599,7 @@
 	  	if (toPhase==phases.monsterVictory)
 	  	{
 	  		snd["defeat"].play();
+	  		clearInterval(pid);
 	  	}
 
   		phase=toPhase;
@@ -644,6 +645,8 @@
  		{
 			switchPhase(phases.monsterVictory);
  		}
+
+
  		console.log("phase is "+phase);
 	  	//================   PHASE INTRO ======================
 	  	if (phase==phases.intro)
@@ -683,13 +686,18 @@
 	  		//var lane = $("#param1").val();
 	  		//console.log("spawnMonster on lane "+ lane);
 	  		var spawnLane=Math.floor((Math.random() * lanes));
+	  		
 	  		if (summonTurnsLeft<=0)
 	  		{
-	  			spawnMonster(spawnLane, laneLvl[spawnLane]);
-	  			snd["monster_spawn"].play();
-	  			laneLvl[spawnLane]++;
+	  			if (bossAlive(spawnLane))
+	  			{
+	  				spawnMonster(spawnLane, laneLvl[spawnLane]);
+	  				snd["monster_spawn"].play();
+	  				laneLvl[spawnLane]++;
+	  				wait(15);
+	  			}
 	  			summonTurnsLeft=summonTurns;
-	  			wait(15);
+	  			
 	  			return;
 	  		}
 
@@ -706,7 +714,7 @@
 	  		for (m in monsters)
 	  		{
 	  			
-	  			if (monsters[m].lvl < 25 && monsters[m].alive==true)
+	  			if (!monsters[m].boss && monsters[m].alive==true)
 	  			{
 	  				console.log("Move candidate: "+m+ " to advance: "+monsters[m].toAdvance);
 	  				if (monsters[m].toAdvance<=0)
@@ -766,10 +774,15 @@
 		//================  PHASE PLAYER ACTIONS ======================
 		if (phase==phases.playerActions)
 		{
+
 			if (checkPlayerVictory())
  			{
  				switchPhase(phases.playerVictory);
  			}
+ 			if (player[currentPlayer].energy<=0)
+			{
+				nextTurn();
+			}
 		}
 
 		if (phase==phases.playerDead)
@@ -794,7 +807,10 @@
 
 		if (phase==phases.battle)
 		{
-			
+			if (player[currentPlayer].energy<=0)
+			{
+				nextTurn();
+			}
 
 			if (player[currentPlayer].hp<=0)
 			{
@@ -1214,7 +1230,7 @@
 
 				var vitIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["vit"][atklvl].w/2);
 				var vitIconY = (boardH/2)-atributeVoffset-(itemInfo["vit"][atklvl].h/2);
-				context.drawImage(itemImg["vit"][atklvl], vitIconX, vitIconY, itemInfo["vit"][vitlvl].w,itemInfo["vit"][vitlvl].h);
+				context.drawImage(itemImg["vit"][vitlvl], vitIconX, vitIconY, itemInfo["vit"][vitlvl].w,itemInfo["vit"][vitlvl].h);
 
 				var defIconX = (boardW/2)-(battleback.w/2)+atributeHoffset-(itemInfo["def"][deflvl].w/2);
 				var defIconY = (boardH/2)+atributeVoffset-(itemInfo["def"][deflvl].h/2);
@@ -1379,7 +1395,8 @@
 	  		tmph:0, 
 	  		toAdvance:monsterMoveTurns,
 	  		offsetx:offsetMax-getRandomInt(offsetMax*2),
-			offsety:offsetMax-getRandomInt(offsetMax*2)
+			offsety:offsetMax-getRandomInt(offsetMax*2), 
+			boss:boss
 	  	});
 	  }
 
@@ -1762,10 +1779,7 @@
 				switchPhase(phases.playerActions);
 			}
 
-			if (player[currentPlayer].energy<=0)
-			{
-				nextTurn();
-			}
+			
 		}	 
 
 		function nextTurn(){
@@ -1847,7 +1861,7 @@
 	  	{
 	  	
 	  		var mon = monsters[m];
-	  		if (mon.alive && mon.lvl==25)
+	  		if (mon.alive && mon.boss)
 	  		{
 	  		//	console.log(mon.lvl);
 	  			count++;
@@ -1868,6 +1882,16 @@
 	  		}
 
 	  		return false;
+	  }
+
+	  function bossAlive(lane)
+	  {
+	  	for (m in monsters)
+	  	{
+	  		if (monsters[m].alive==true && monsters[m].boss && monsters[m].lane==lane)
+	  			return true;
+	  	}
+	  	return false;
 	  }
 
 
