@@ -1078,6 +1078,18 @@
 						p2:aList[a].param2
 						});
 					}
+					else if (aList[a].code=="arrow")
+					{
+						buttons.push({
+						x:boardW,
+						y:infoBoxH*3+(32*a),
+						h:32,
+						w:32,
+						action:aList[a].code,
+						p1:aList[a].param1,
+						p2:aList[a].param2
+						});
+					}
 					else if (aList[a].code=="buy")
 					{
 						buttons.push({
@@ -1134,6 +1146,13 @@
 					txt = button.p1 + ": " + itemInfo[button.p1][button.p2].val+ " ("+itemInfo[button.p1][button.p2].cost+"g)" ;
 					context.drawImage(itemImg[button.p1][button.p2], button.x, button.y, button.w, button.h);
 					context.fillText(txt, button.x+button.w, button.y+(button.h/2));
+				}
+
+				if (button.action=="arrow")
+				{
+					//txt = button.p1 + ": " + itemInfo[button.p1][button.p2].val+ " ("+itemInfo[button.p1][button.p2].cost+"g)" ;
+					context.drawImage(faceImg[button.p1], button.x, button.y, button.w, button.h);
+					//context.fillText(txt, button.x+button.w, button.y+(button.h/2));
 				}
 
 				if (button.action=="cancel")
@@ -1424,7 +1443,8 @@
 						character:playerInfo[pl].character, 
 						offsetx:offsetMax-getRandomInt(offsetMax*2),
 						offsety:offsetMax-getRandomInt(offsetMax*2), 
-						energy:0
+						energy:0,
+						arrows:1
 					};
 	  }
 
@@ -1479,6 +1499,12 @@
 	  		actionList.push({code:"atk", param1:battleMonster.id, param2:0});
 	  		actionList.push({code:"dmg", param1:battleMonster.id, param2:0});
 	  		actionList.push({code:"cancel", p1:0, p2:0});
+	  		for (p in getArrowAttacker(battleMonster.id))
+	  		{
+	  			console.log("ARROW");
+	  			actionList.push({code:"arrow", param1:p, param2:battleMonster.id});
+
+	  		}
 	  	}
 
 
@@ -1892,6 +1918,22 @@
 	  			return true;
 	  	}
 	  	return false;
+	  }
+
+	  function getArrowAttacker(mid)
+	  {
+	  	var attackers=[];
+	  	for (p in player)
+	  	{
+	  		console.log("Checking arrow player: " +p+" plane:"+player[p].lane+" mlane:"+monsters[mid].lane+" diff:"+Math.abs(player[p].box - monsters[mid].box));
+	  		if ((player[p].lane==monsters[mid].lane || player[p].box==0) 
+	  			&& (Math.abs(player[p].box - monsters[mid].box) <= 5 )  )
+	  		{
+	  			attackers.push(p);
+	  		}
+	  	}
+
+	  	return attackers;
 	  }
 
 
